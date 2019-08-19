@@ -8,8 +8,8 @@
 #include <future>
 
 static const int fetch_pages = 10;
-static const char* target = "car";
-static const int stress_fetch_pages = 5;
+static const char *target = "gossiping";
+static const int stress_fetch_pages = 50;
 
 TEST(ThreadTest, StressIndexWithoutThread) {
     Crawler* crawler = new Crawler(target);

@@ -10,24 +10,31 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
+#include <iostream>
 
 
 std::string Crawler::GetRawHtml(const std::string &url) {
 
     CURL* curl = curl_easy_init();
     curl_slist *headers = nullptr;
-    char buf[262144];
-    //fmemopen doesn't in Windows...
-    FILE* fp = fmemopen(buf, 262144, "w");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_URL,url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-    //curl_easy_setopt(curl, CURLOPT_HEADERDATA, stdout);
+
+    std::string resultBody{};
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resultBody);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<size_t (__stdcall *)(char *, size_t, size_t, void *)>(
+            [](char *ptr, size_t size, size_t nmemb, void *resultBody) {
+                *(static_cast<std::string *>(resultBody)) += std::string{ptr, size * nmemb};
+                return size * nmemb;
+            }
+    ));
+
     curl_easy_setopt(curl, CURLOPT_COOKIE, "over18=1");
     CURLcode res = curl_easy_perform(curl);
     //std::fprintf(fp, "Return code : %d", res);
     curl_easy_cleanup(curl);
-    return std::string(buf);
+    //return std::string(buf);
+    return resultBody;
 }
 
 Crawler::Crawler(const std::string &broadName) {
@@ -92,7 +99,8 @@ void Crawler::ParseArticle(ArticleInfo &articleInfo) {
     CDocument doc;
     doc.parse(content);
     //Parse push
-    CSelection pushes = doc.find("div.push");
+    //要處理 </span></div><div class="push center warning-box">檔案過大！部分文章無法顯示</div>
+    CSelection pushes = doc.find("div.push:not(.warning-box)");
     for (int j = 0; j < pushes.nodeNum(); ++j) {
         CNode pushNode = pushes.nodeAt(j);
         //std::cout << pushNode.text() << std::endl;

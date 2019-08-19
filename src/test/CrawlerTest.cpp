@@ -34,6 +34,17 @@ TEST(Crawler_Test, IndexDetail) {
 
 }
 
+TEST(CrawlerTest, DocParse) {
+    std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
+    Crawler *crawler = new Crawler(target);
+
+    ArticleInfo info;
+    info.url = url;
+    crawler->ParseArticle(info);
+
+    delete crawler;
+}
+
 
 TEST(Crawler_Test, DocumentParse) {
     Crawler* crawler = new Crawler(target);
