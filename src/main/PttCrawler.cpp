@@ -5,8 +5,8 @@
 #include "PttCrawler.h"
 #include <curl/curl.h>
 #include <sstream>
-#include <gumbo-query/Document.h>
-#include <gumbo-query/Node.h>
+#include <gq/Document.h>
+#include <gq/Node.h>
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
