@@ -20,6 +20,15 @@ struct ArticleInfo {
     std::map<std::string, int> pusherMap;
     std::map<std::string, int> haterMap;
 
+    int parsedPlusScore = 0;
+    int parsedNegativeScore = 0;
+    //int parsedNeutralScore;
+
+    //Parse from article
+    int parsedArticleScore = 0;
+    //Show on Index
+    std::string shownArticleScore;
+
     friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
 
 };

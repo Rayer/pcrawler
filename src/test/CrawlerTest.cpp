@@ -50,7 +50,7 @@ TEST(Crawler_Test, DocumentParse) {
     Crawler* crawler = new Crawler(target);
 
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
-    std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(), [=](ArticleInfo& info)->ArticleInfo{
+    std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(), [crawler](ArticleInfo& info)->ArticleInfo{
         crawler->ParseArticle(info);
         return info;
     });

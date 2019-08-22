@@ -29,9 +29,9 @@ TEST(ThreadTest, StressIndexWithFullThread) {
         threadList.push_back(std::async(&Crawler::GetArticleInIndex, crawler, i));
     }
 
-    for(auto i = threadList.begin(); i != threadList.end(); ++i) {
-        std::cout << (*i).get() << std::endl;
-    }
+    std::for_each(threadList.begin(), threadList.end(), [](auto& future)->void{
+        std::cout << future.get() << std::endl;
+    });
 
     delete crawler;
 }

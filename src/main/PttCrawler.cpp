@@ -10,7 +10,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
-#include <iostream>
 
 
 std::string Crawler::GetRawHtml(const std::string &url) {
@@ -108,10 +107,14 @@ void Crawler::ParseArticle(ArticleInfo &articleInfo) {
         std::string name = pushNode.find("span.push-userid").nodeAt(0).text();
         if(tag == "推 ") {
             articleInfo.pusherMap[name] += 1;
+            articleInfo.parsedPlusScore += 1;
+            articleInfo.parsedArticleScore += 1;
         }
 
         if(tag == "噓 ") {
             articleInfo.haterMap[name] += 1;
+            articleInfo.parsedNegativeScore += 1;
+            articleInfo.parsedArticleScore -= 1;
         }
 
         if(tag == "→ ") {
@@ -120,16 +123,18 @@ void Crawler::ParseArticle(ArticleInfo &articleInfo) {
     }
 }
 
-std::ostream &operator<<(std::ostream &os, const ArticleInfo &info) {
-    os << " title: " << info.title << " author: " << info.author << " date: " << info.date
-       << " url: " << info.url << " pushMap size: " << info.pusherMap.size() << " haterMap size: " << info.haterMap.size();
-    return os;
-}
-
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
     os << "index: " << info.index << std::endl;
     for (int j = 0; j < info.articles.size(); ++j) {
         os << info.articles[j] << std::endl;
     }
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const ArticleInfo &info) {
+    os << "index: " << info.index << " title: " << info.title << " author: " << info.author << " date: " << info.date
+       << " url: " << info.url << " pusherMapSize: " << info.pusherMap.size() << " haterMapSize: " << info.haterMap.size()
+       << " parsedPlusScore: " << info.parsedPlusScore << " parsedNegativeScore: " << info.parsedNegativeScore
+       << " parsedArticleScore: " << info.parsedArticleScore << " shownArticleScore: " << info.shownArticleScore;
     return os;
 }
