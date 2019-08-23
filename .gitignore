@@ -98,8 +98,4 @@ crashlytics-build.properties
 fabric.properties
 
 .idea
-CMakeLists.txt
 build
-conanfile.txt
-include/
-src/
