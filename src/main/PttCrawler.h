@@ -9,6 +9,7 @@
 #include <vector>
 #include <ostream>
 #include <map>
+#include <set>
 
 struct ArticleInfo {
     int index;
@@ -29,8 +30,10 @@ struct ArticleInfo {
     //Show on Index
     std::string shownArticleScore;
 
-    friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
+    //userid / ip
+    std::map<std::string, std::set<int>> ipUserInfoMap;
 
+    friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
 };
 
 struct IndexInfo {

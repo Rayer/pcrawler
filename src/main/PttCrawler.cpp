@@ -10,6 +10,9 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/format.hpp>
+#include <regex>
+#include "Utilities.h"
+#include <iostream>
 
 
 std::string Crawler::GetRawHtml(const std::string &url) {
@@ -21,7 +24,7 @@ std::string Crawler::GetRawHtml(const std::string &url) {
 
     std::string resultBody{};
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resultBody);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<size_t (__stdcall *)(char *, size_t, size_t, void *)>(
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, static_cast<size_t (*)(char *, size_t, size_t, void *)>(
             [](char *ptr, size_t size, size_t nmemb, void *resultBody) {
                 *(static_cast<std::string *>(resultBody)) += std::string{ptr, size * nmemb};
                 return size * nmemb;
@@ -105,10 +108,22 @@ void Crawler::ParseArticle(ArticleInfo &articleInfo) {
         //std::cout << pushNode.text() << std::endl;
         std::string tag = pushNode.find("span.push-tag").nodeAt(0).text();
         std::string name = pushNode.find("span.push-userid").nodeAt(0).text();
+        CSelection ipNode = pushNode.find("span.push-ipdatetime");
+        int ipAddr = 0;
+        if (ipNode.nodeNum() > 0) {
+            std::string ipInfo = ipNode.nodeAt(0).text();
+            std::regex rgx(R"(\d{1,3}(\.\d{1,3}){3})");
+            std::smatch match;
+            if (std::regex_search(ipInfo, match, rgx)) {
+                articleInfo.ipUserInfoMap[name].insert(ip4ToInteger(match[0]));
+            }
+        }
+
         if(tag == "推 ") {
             articleInfo.pusherMap[name] += 1;
             articleInfo.parsedPlusScore += 1;
             articleInfo.parsedArticleScore += 1;
+
         }
 
         if(tag == "噓 ") {
@@ -133,8 +148,9 @@ std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
 
 std::ostream &operator<<(std::ostream &os, const ArticleInfo &info) {
     os << "index: " << info.index << " title: " << info.title << " author: " << info.author << " date: " << info.date
-       << " url: " << info.url << " pusherMapSize: " << info.pusherMap.size() << " haterMapSize: " << info.haterMap.size()
+       << " url: " << info.url << " pusherMap: " << info.pusherMap.size() << " haterMap: " << info.haterMap.size()
        << " parsedPlusScore: " << info.parsedPlusScore << " parsedNegativeScore: " << info.parsedNegativeScore
-       << " parsedArticleScore: " << info.parsedArticleScore << " shownArticleScore: " << info.shownArticleScore;
+       << " parsedArticleScore: " << info.parsedArticleScore << " shownArticleScore: " << info.shownArticleScore
+       << " ipUserInfoMap: " << info.ipUserInfoMap.size();
     return os;
 }

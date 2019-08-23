@@ -13,7 +13,7 @@ endif()
 # SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pthread")
 
 include_directories(src/main)
-set(LIBS src/main/PttCrawler.cpp src/main/PttCrawler.h)
+set(LIBS src/main/PttCrawler.cpp src/main/PttCrawler.h src/main/Utilities.cpp src/main/Utilities.h)
 
 FIND_PACKAGE(Boost REQUIRED serialization filesystem system thread)
 
