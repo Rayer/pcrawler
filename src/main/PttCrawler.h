@@ -10,6 +10,7 @@
 #include <ostream>
 #include <map>
 #include <set>
+#include <list>
 
 struct ArticleInfo {
     int index;
@@ -20,6 +21,7 @@ struct ArticleInfo {
 
     std::map<std::string, int> pusherMap;
     std::map<std::string, int> haterMap;
+    std::map<std::string, std::list<std::string>> commitMap;
 
     int parsedPlusScore = 0;
     int parsedNegativeScore = 0;

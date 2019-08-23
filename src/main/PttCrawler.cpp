@@ -108,13 +108,17 @@ void Crawler::ParseArticle(ArticleInfo &articleInfo) {
         //std::cout << pushNode.text() << std::endl;
         std::string tag = pushNode.find("span.push-tag").nodeAt(0).text();
         std::string name = pushNode.find("span.push-userid").nodeAt(0).text();
+        boost::algorithm::trim(name);
         CSelection ipNode = pushNode.find("span.push-ipdatetime");
+        std::string commit = pushNode.find("span.push-content").nodeAt(0).text();
+
+        articleInfo.commitMap[name].push_back(commit);
+
         if (ipNode.nodeNum() > 0) {
             std::string ipInfo = ipNode.nodeAt(0).text();
             std::regex rgx(R"(\d{1,3}(\.\d{1,3}){3})");
             std::smatch match;
             if (std::regex_search(ipInfo, match, rgx)) {
-                boost::algorithm::trim(name);
                 articleInfo.ipUserInfoMap[name].insert(ip4ToInteger(match[0]));
             }
         }

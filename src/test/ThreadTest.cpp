@@ -10,7 +10,7 @@
 
 static const int fetch_pages = 10;
 static const char *target = "gossiping";
-static const int stress_fetch_pages = 10;
+static const int stress_fetch_pages = 30;
 
 TEST(ThreadTest, StressIndexWithoutThread) {
     Crawler* crawler = new Crawler(target);
@@ -107,8 +107,9 @@ TEST(ThreadTest, StressMultiIpDetectionWithThread) {
         ipAnalyzer->addParsedIndex(info);
     });
 
-    ipAnalyzer->printUserWithMultipleIp(4);
-    ipAnalyzer->printIpSharedByMultipleUser(3);
+    ipAnalyzer->printUserWithMultipleIp(std::cout, 4);
+    ipAnalyzer->printIpSharedByMultipleUser(std::cout, 3);
+    ipAnalyzer->whatDoesTheFoxSay(std::cout);
 
     delete ipAnalyzer;
     delete crawler;

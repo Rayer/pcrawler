@@ -75,8 +75,9 @@ TEST(Crawler_Test, MultipleIPDetect) {
     IpAnalyzer *ipAnalyzer = new IpAnalyzer();
 
     ipAnalyzer->addParsedIndex(indexInfo);
-    ipAnalyzer->printUserWithMultipleIp();
-    ipAnalyzer->printIpSharedByMultipleUser();
+    ipAnalyzer->printUserWithMultipleIp(std::cout);
+    ipAnalyzer->printIpSharedByMultipleUser(std::cout);
+    ipAnalyzer->whatDoesTheFoxSay(std::cout);
 
     delete ipAnalyzer;
     delete crawler;

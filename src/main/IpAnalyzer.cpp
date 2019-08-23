@@ -6,6 +6,7 @@
 #include "PttCrawler.h"
 #include <iostream>
 #include "Utilities.h"
+#include <sstream>
 
 void IpAnalyzer::addParsedIndex(const IndexInfo &i_info) {
     std::for_each(i_info.articles.begin(), i_info.articles.end(),
@@ -15,6 +16,7 @@ void IpAnalyzer::addParsedIndex(const IndexInfo &i_info) {
 }
 
 void IpAnalyzer::addParsedDocument(const ArticleInfo &a_info) {
+    articleInfoList.push_back(a_info);
     std::for_each(a_info.ipUserInfoMap.begin(), a_info.ipUserInfoMap.end(), [this](
             std::pair<std::string, std::set<int>> nameIpSetPair) -> void {
         std::string name = nameIpSetPair.first;
@@ -38,30 +40,69 @@ const std::map<int, std::set<std::string>> &IpAnalyzer::getIpSharedMap() {
     return this->ipSharedMap;
 }
 
-void IpAnalyzer::printUserWithMultipleIp(int threshold) {
+void IpAnalyzer::printUserWithMultipleIp(std::ostream &os, int threshold) {
     std::for_each(ipAddrMap.begin(), ipAddrMap.end(),
-                  [threshold](const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
+                  [&os, threshold, this](const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
                       if (nameIpSetPair.second.size() < threshold) return;
-                      std::cout << nameIpSetPair.first << " : ";
-                      std::for_each(nameIpSetPair.second.begin(), nameIpSetPair.second.end(), [](int ip) -> void {
-                          std::cout << integerToIp4String(ip) << " ";
+                      std::ostringstream buf;
+                      buf << nameIpSetPair.first << " : ";
+                      std::for_each(nameIpSetPair.second.begin(), nameIpSetPair.second.end(), [&buf](int ip) -> void {
+                          buf << integerToIp4String(ip) << " ";
                       });
-                      std::cout << std::endl;
+                      buf << std::endl;
+                      std::string reason = buf.str();
+                      os << reason;
+                      highlightMap[nameIpSetPair.first].push_back(reason);
                   });
 }
 
-void IpAnalyzer::printIpSharedByMultipleUser(int threshold) {
+void IpAnalyzer::printIpSharedByMultipleUser(std::ostream &os, int threshold) {
     std::for_each(ipSharedMap.begin(), ipSharedMap.end(),
-                  [threshold](const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
+                  [&os, threshold, this](const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
                       if (ipNameSetPair.second.size() < threshold) return;
-                      std::cout << integerToIp4String(ipNameSetPair.first) << " : ";
+                      std::ostringstream buf;
+                      buf << integerToIp4String(ipNameSetPair.first) << " : ";
                       std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
-                                    [](const std::string &name) -> void {
-                                        std::cout << name << " ";
+                                    [&buf](const std::string &name) -> void {
+                                        buf << name << " ";
                                     });
-                      std::cout << std::endl;
+                      buf << std::endl;
+                      std::string reason = buf.str();
+                      std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
+                                    [this, &reason](const std::string &name) -> void {
+                                        highlightMap[name].push_back(reason);
+                                    });
+                      os << reason;
                   });
 }
+
+void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
+    std::for_each(highlightMap.begin(), highlightMap.end(),
+                  [this, &os](const std::pair<std::string, std::list<std::string>> &nameReasonPair) -> void {
+                      os << "Name : " << nameReasonPair.first << std::endl;
+                      std::for_each(nameReasonPair.second.begin(), nameReasonPair.second.end(),
+                                    [&os](const std::string &reason) -> void {
+                                        os << reason;
+                                    });
+
+                      std::for_each(articleInfoList.begin(), articleInfoList.end(),
+                                    [&os, &nameReasonPair](ArticleInfo &aInfo) -> void {
+                                        std::for_each(aInfo.commitMap.begin(), aInfo.commitMap.end(),
+                                                      [&os, &nameReasonPair](
+                                                              const std::pair<std::string, std::list<std::string>> &nameCommitListPair) -> void {
+                                                          if (nameCommitListPair.first == nameReasonPair.first) {
+                                                              std::for_each(nameCommitListPair.second.begin(),
+                                                                            nameCommitListPair.second.end(),
+                                                                            [&os](const std::string &commit) -> void {
+                                                                                os << commit << std::endl;
+                                                                            });
+                                                          }
+                                                      });
+                                    });
+                  });
+
+}
+
 
 
 
