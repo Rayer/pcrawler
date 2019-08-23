@@ -45,16 +45,16 @@ struct IndexInfo {
     friend std::ostream &operator<<(std::ostream &os, const IndexInfo &info);
 };
 
-class Crawler {
+class PttCrawler {
     std::string broadName;
     static std::string GetRawHtml(const std::string &url);
 public:
-    explicit Crawler(const std::string &broadName);
+    explicit PttCrawler(const std::string &broadName);
     int GetMaxIndex();
     IndexInfo GetArticleInIndex(int index);
     void ParseArticle(ArticleInfo& ainfo);
 
-    virtual ~Crawler();
+    virtual ~PttCrawler();
 };
 
 #endif //ANALYZER_PTTCRAWLER_H

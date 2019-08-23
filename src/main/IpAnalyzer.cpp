@@ -7,6 +7,7 @@
 #include <iostream>
 #include "Utilities.h"
 #include <sstream>
+#include <boost/format.hpp>
 
 void IpAnalyzer::addParsedIndex(const IndexInfo &i_info) {
     std::for_each(i_info.articles.begin(), i_info.articles.end(),
@@ -87,10 +88,16 @@ void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
 
                       std::for_each(articleInfoList.begin(), articleInfoList.end(),
                                     [&os, &nameReasonPair](ArticleInfo &aInfo) -> void {
+                                        bool firstTime = true;
                                         std::for_each(aInfo.commitMap.begin(), aInfo.commitMap.end(),
-                                                      [&os, &nameReasonPair](
+                                                      [&os, &nameReasonPair, &firstTime, &aInfo](
                                                               const std::pair<std::string, std::list<std::string>> &nameCommitListPair) -> void {
                                                           if (nameCommitListPair.first == nameReasonPair.first) {
+                                                              if (firstTime) {
+                                                                  os << (boost::format("%1% (%2%)") % aInfo.title %
+                                                                         aInfo.url).str() << std::endl;
+                                                                  firstTime = false;
+                                                              }
                                                               std::for_each(nameCommitListPair.second.begin(),
                                                                             nameCommitListPair.second.end(),
                                                                             [&os](const std::string &commit) -> void {

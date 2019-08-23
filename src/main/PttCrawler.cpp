@@ -15,7 +15,7 @@
 #include <iostream>
 
 
-std::string Crawler::GetRawHtml(const std::string &url) {
+std::string PttCrawler::GetRawHtml(const std::string &url) {
 
     CURL* curl = curl_easy_init();
     curl_slist *headers = nullptr;
@@ -39,17 +39,17 @@ std::string Crawler::GetRawHtml(const std::string &url) {
     return resultBody;
 }
 
-Crawler::Crawler(const std::string &broadName) {
+PttCrawler::PttCrawler(const std::string &broadName) {
     this->broadName = broadName;
     curl_global_init(CURL_GLOBAL_ALL);
 }
 
-Crawler::~Crawler() {
+PttCrawler::~PttCrawler() {
     curl_global_cleanup();
 }
 
 
-int Crawler::GetMaxIndex() {
+int PttCrawler::GetMaxIndex() {
     std::stringstream url;
     url << "https://www.ptt.cc/bbs/" << this->broadName << "/index.html";
     std::string page_context = this->GetRawHtml(url.str());
@@ -67,7 +67,7 @@ int Crawler::GetMaxIndex() {
     return boost::lexical_cast<int>(token) + 1;
 }
 
-IndexInfo Crawler::GetArticleInIndex(int index) {
+IndexInfo PttCrawler::GetArticleInIndex(int index) {
     //std::cout << "Starting for index " << index << std::endl;
     std::string url = (boost::format("https://www.ptt.cc/bbs/%1%/index%2%.html") % this->broadName % index).str();
     std::string content = this->GetRawHtml(url);
@@ -96,7 +96,7 @@ IndexInfo Crawler::GetArticleInIndex(int index) {
     return ret;
 }
 
-void Crawler::ParseArticle(ArticleInfo &articleInfo) {
+void PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
     std::string content = this->GetRawHtml(articleInfo.url);
     CDocument doc;
     doc.parse(content);

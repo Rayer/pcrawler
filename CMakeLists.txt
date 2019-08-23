@@ -13,17 +13,17 @@ endif()
 # SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -pthread")
 
 include_directories(src/main)
-set(LIBS src/main/PttCrawler.cpp src/main/PttCrawler.h src/main/Utilities.cpp src/main/Utilities.h src/main/Utilities.cpp src/main/Utilities.h src/main/IpAnalyzer.cpp src/main/IpAnalyzer.h)
+set(LIBS src/main/PttCrawler.cpp src/main/PttCrawler.h src/main/Utilities.cpp src/main/Utilities.h src/main/Utilities.cpp src/main/Utilities.h src/main/IpAnalyzer.cpp src/main/IpAnalyzer.h src/main/cmdline_main.cpp src/main/PttCrawlerTask.cpp src/main/PttCrawlerTask.h)
 
-FIND_PACKAGE(Boost REQUIRED serialization filesystem system thread)
+FIND_PACKAGE(Boost REQUIRED serialization filesystem system thread program_options)
 
 include_directories(/usr/local/include/gq ${Boost_INCLUDE_DIR} )
 link_directories(/usr/local/lib lib)
 
 add_library(AnalyzerLibs ${LIBS})
-add_executable(Analyzer src/main/WebServiceMain.cpp)
+add_executable(Analyzer src/main/cmdline_main.cpp)
 add_executable(AnalyzerTest src/test/ThreadTest.cpp src/test/CrawlerTest.cpp src/test/UtilitiesTest.cpp)
-target_link_libraries(AnalyzerLibs CONAN_PKG::libcurl boost_system)
+target_link_libraries(AnalyzerLibs CONAN_PKG::libcurl boost_system boost_program_options gumbo gq)
 target_link_libraries(Analyzer AnalyzerLibs CONAN_PKG::Poco)
-target_link_libraries(AnalyzerTest AnalyzerLibs CONAN_PKG::libcurl CONAN_PKG::gtest gumbo gq)
+target_link_libraries(AnalyzerTest AnalyzerLibs CONAN_PKG::libcurl CONAN_PKG::gtest)
 

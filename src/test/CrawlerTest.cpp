@@ -16,7 +16,7 @@ static const char* target = "Gossiping";
 TEST(Crawler_Test, IndexFetch) {
 
 
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
 
     std::cout << "Max index for " << target << " is " << crawler->GetMaxIndex() << std::endl;
@@ -28,7 +28,7 @@ TEST(Crawler_Test, IndexFetch) {
 }
 
 TEST(Crawler_Test, IndexDetail) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     for (int i = 0; i < indexInfo.articles.size(); ++i) {
         std::cout << indexInfo.articles[i] << std::endl;
@@ -38,7 +38,7 @@ TEST(Crawler_Test, IndexDetail) {
 
 TEST(CrawlerTest, DocParse) {
     std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
-    Crawler *crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
 
     ArticleInfo info;
     info.url = url;
@@ -49,7 +49,7 @@ TEST(CrawlerTest, DocParse) {
 
 
 TEST(Crawler_Test, DocumentParse) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
 
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(), [crawler](ArticleInfo& info)->ArticleInfo{
@@ -63,7 +63,7 @@ TEST(Crawler_Test, DocumentParse) {
 }
 
 TEST(Crawler_Test, MultipleIPDetect) {
-    Crawler *crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
 
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(),

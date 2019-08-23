@@ -7,13 +7,14 @@
 #include <list>
 #include <future>
 #include <IpAnalyzer.h>
+#include <fstream>
 
 static const int fetch_pages = 10;
 static const char *target = "gossiping";
-static const int stress_fetch_pages = 30;
+static const int stress_fetch_pages = 100;
 
 TEST(ThreadTest, StressIndexWithoutThread) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
     for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
         std::cout << crawler->GetArticleInIndex(i) << std::endl;
@@ -23,11 +24,11 @@ TEST(ThreadTest, StressIndexWithoutThread) {
 
 
 TEST(ThreadTest, StressIndexWithFullThread) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
     std::list<std::future<IndexInfo>> threadList;
     for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
-        threadList.push_back(std::async(&Crawler::GetArticleInIndex, crawler, i));
+        threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
     }
 
     std::for_each(threadList.begin(), threadList.end(), [](auto& future)->void{
@@ -38,7 +39,7 @@ TEST(ThreadTest, StressIndexWithFullThread) {
 }
 
 TEST(ThreadTest, StressDocParseWithoutThread) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
     std::list<IndexInfo> indexInfoList;
     for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
@@ -56,12 +57,12 @@ TEST(ThreadTest, StressDocParseWithoutThread) {
 }
 
 TEST(ThreadTest, StressDocParseWithThread) {
-    Crawler* crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
     std::list<IndexInfo> indexInfoList;
     std::list<std::future<IndexInfo> > threadList;
     for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
-        threadList.push_back(std::async(&Crawler::GetArticleInIndex, crawler, i));
+        threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
     }
     std::for_each(threadList.begin(), threadList.end(), [&indexInfoList](std::future<IndexInfo>& threadInfo)->void{
         indexInfoList.push_back(threadInfo.get());
@@ -70,7 +71,7 @@ TEST(ThreadTest, StressDocParseWithThread) {
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler](IndexInfo& info)->void{
         std::list<std::future<void>> futureList;
         std::for_each(info.articles.begin(), info.articles.end(), [crawler, &futureList](ArticleInfo& ainfo)->void{
-            futureList.push_back(std::async(&Crawler::ParseArticle, crawler, std::ref(ainfo)));
+            futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
         });
         std::for_each(futureList.begin(), futureList.end(), [](std::future<void>& threadInfo)->void{
             threadInfo.get();
@@ -83,12 +84,12 @@ TEST(ThreadTest, StressDocParseWithThread) {
 
 
 TEST(ThreadTest, StressMultiIpDetectionWithThread) {
-    Crawler *crawler = new Crawler(target);
+    PttCrawler *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
     std::list<IndexInfo> indexInfoList;
     std::list<std::future<IndexInfo> > threadList;
     for (int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
-        threadList.push_back(std::async(&Crawler::GetArticleInIndex, crawler, i));
+        threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
     }
     std::for_each(threadList.begin(), threadList.end(), [&indexInfoList](std::future<IndexInfo> &threadInfo) -> void {
         indexInfoList.push_back(threadInfo.get());
@@ -98,7 +99,7 @@ TEST(ThreadTest, StressMultiIpDetectionWithThread) {
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler, ipAnalyzer](IndexInfo &info) -> void {
         std::list<std::future<void>> futureList;
         std::for_each(info.articles.begin(), info.articles.end(), [crawler, &futureList](ArticleInfo &ainfo) -> void {
-            futureList.push_back(std::async(&Crawler::ParseArticle, crawler, std::ref(ainfo)));
+            futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
         });
         std::for_each(futureList.begin(), futureList.end(), [](std::future<void> &threadInfo) -> void {
             threadInfo.get();
@@ -107,10 +108,16 @@ TEST(ThreadTest, StressMultiIpDetectionWithThread) {
         ipAnalyzer->addParsedIndex(info);
     });
 
-    ipAnalyzer->printUserWithMultipleIp(std::cout, 4);
-    ipAnalyzer->printIpSharedByMultipleUser(std::cout, 3);
-    ipAnalyzer->whatDoesTheFoxSay(std::cout);
+    std::ofstream of("/tmp/report.txt");
 
+    of << "User with 8 and more IPs : " << std::endl;
+    ipAnalyzer->printUserWithMultipleIp(of, 8);
+    of << std::endl << "IPs with more then 4 users :" << std::endl;
+    ipAnalyzer->printIpSharedByMultipleUser(of, 3);
+    of << std::endl << "Highlighted user's commit, who have appeared in above lists : " << std::endl;
+    ipAnalyzer->whatDoesTheFoxSay(of);
+
+    of.close();
     delete ipAnalyzer;
     delete crawler;
 }
