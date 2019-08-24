@@ -23,6 +23,7 @@ int main(int argc, char *argv[]) {
     bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
 
     try {
+        bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
         bpo::notify(opts);
     } catch (std::exception &e) {
         std::cout << e.what() << std::endl;
@@ -43,6 +44,9 @@ int main(int argc, char *argv[]) {
     if (opts.count("output") > 0) {
         std::ofstream fs(opts["output"].as<std::string>());
         task.generateReport(ipCountThreshold, ipWithNameThreshold, fs);
+        if (opts["force_console"].as<bool>()) {
+            task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
+        }
     } else {
         task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
     }

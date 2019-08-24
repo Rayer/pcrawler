@@ -46,7 +46,7 @@ void IpAnalyzer::printUserWithMultipleIp(std::ostream &os, int threshold) {
                   [&os, threshold, this](const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
                       if (nameIpSetPair.second.size() < threshold) return;
                       std::ostringstream buf;
-                      buf << nameIpSetPair.first << " : ";
+                      buf << nameIpSetPair.first << " (" << nameIpSetPair.second.size() << ") : ";
                       std::for_each(nameIpSetPair.second.begin(), nameIpSetPair.second.end(), [&buf](int ip) -> void {
                           buf << integerToIp4String(ip) << " ";
                       });
@@ -62,7 +62,7 @@ void IpAnalyzer::printIpSharedByMultipleUser(std::ostream &os, int threshold) {
                   [&os, threshold, this](const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
                       if (ipNameSetPair.second.size() < threshold) return;
                       std::ostringstream buf;
-                      buf << integerToIp4String(ipNameSetPair.first) << " : ";
+                      buf << integerToIp4String(ipNameSetPair.first) << " (" << ipNameSetPair.second.size() << ") : ";
                       std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
                                     [&buf](const std::string &name) -> void {
                                         buf << name << " ";
@@ -109,7 +109,6 @@ void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
                   });
 
 }
-
 
 
 
