@@ -3,6 +3,7 @@
 //
 #include <boost/program_options.hpp>
 #include <iostream>
+#include <fstream>
 #include "PttCrawlerTask.h"
 
 namespace bpo = boost::program_options;
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
         std::cout << desc << std::endl;
     }
 
-    std::string boardName = opts["board"].as<std::string>();
+    //std::string boardName = opts["board"].as<std::string>();
     std::string output_file = opts["output"].as<std::string>();
     int pages = opts["pages"].as<int>();
     int ipCountThreshold = opts["ip_count_threshold"].as<int>();
@@ -39,6 +40,10 @@ int main(int argc, char *argv[]) {
     task.startCrawl_recent(pages);
     std::cout << "Complete download and parsing." << std::endl;
 
-    task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
-
+    if (opts.count("output") > 0) {
+        std::ofstream fs(opts["output"].as<std::string>());
+        task.generateReport(ipCountThreshold, ipWithNameThreshold, fs);
+    } else {
+        task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
+    }
 }
