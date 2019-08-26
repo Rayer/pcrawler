@@ -19,7 +19,7 @@ public:
 
     virtual void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) {};
 
-    virtual void analyerFinished(IpAnalyzer::ID_ADDR_MAP idAddrMap, IpAnalyzer::IP_SHARED_MAP ipSharedMap,
+    virtual void analyerFinished(IpAnalyzer::IP_ADDR_MAP idAddrMap, IpAnalyzer::IP_SHARED_MAP ipSharedMap,
                                  IpAnalyzer::HIGHLIGHT_USER_MAP highlightUserMap) = 0;
 };
 

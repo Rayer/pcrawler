@@ -33,12 +33,16 @@ void IpAnalyzer::addParsedDocument(const ArticleInfo &a_info) {
     });
 }
 
-const std::map<std::string, std::set<int>> &IpAnalyzer::getIpAddrMap() {
+const IpAnalyzer::IP_ADDR_MAP &IpAnalyzer::getIpAddrMap() {
     return this->ipAddrMap;
 }
 
-const std::map<int, std::set<std::string>> &IpAnalyzer::getIpSharedMap() {
+const IpAnalyzer::IP_SHARED_MAP &IpAnalyzer::getIpSharedMap() {
     return this->ipSharedMap;
+}
+
+const IpAnalyzer::HIGHLIGHT_USER_MAP &IpAnalyzer::getHighlightUserMap() {
+    return this->highlightMap;
 }
 
 void IpAnalyzer::printUserWithMultipleIp(std::ostream &os, int threshold) {
@@ -109,6 +113,8 @@ void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
                   });
 
 }
+
+
 
 
 

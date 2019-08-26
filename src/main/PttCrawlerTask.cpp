@@ -58,6 +58,11 @@ void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThr
         ipAnalyzer->addParsedIndex(i_info);
     });
 
+    if (callback != nullptr) {
+        callback->analyerFinished(ipAnalyzer->getIpAddrMap(), ipAnalyzer->getIpSharedMap(),
+                                  ipAnalyzer->getHighlightUserMap());
+    }
+
     os << "User have used " << nameIpCountThreshold << " and more IPs : " << std::endl;
     ipAnalyzer->printUserWithMultipleIp(os, nameIpCountThreshold);
     os << std::endl << "IPs with more then " << ipNameCountThreshold << " users :" << std::endl;
