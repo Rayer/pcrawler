@@ -69,11 +69,11 @@ TEST(ThreadTest, StressDocParseWithThread) {
     });
     //IndexInfo won't multi thread but articleList will
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler](IndexInfo& info)->void{
-        std::list<std::future<void>> futureList;
+        std::list<std::future<ArticleInfo &>> futureList;
         std::for_each(info.articles.begin(), info.articles.end(), [crawler, &futureList](ArticleInfo& ainfo)->void{
             futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
         });
-        std::for_each(futureList.begin(), futureList.end(), [](std::future<void>& threadInfo)->void{
+        std::for_each(futureList.begin(), futureList.end(), [](std::future<ArticleInfo &> &threadInfo) -> void {
             threadInfo.get();
         });
         std::cout << info << std::endl;
@@ -97,11 +97,11 @@ TEST(ThreadTest, StressMultiIpDetectionWithThread) {
     //IndexInfo won't multi thread but articleList will
     IpAnalyzer *ipAnalyzer = new IpAnalyzer();
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler, ipAnalyzer](IndexInfo &info) -> void {
-        std::list<std::future<void>> futureList;
+        std::list<std::future<ArticleInfo &>> futureList;
         std::for_each(info.articles.begin(), info.articles.end(), [crawler, &futureList](ArticleInfo &ainfo) -> void {
             futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
         });
-        std::for_each(futureList.begin(), futureList.end(), [](std::future<void> &threadInfo) -> void {
+        std::for_each(futureList.begin(), futureList.end(), [](std::future<ArticleInfo &> &threadInfo) -> void {
             threadInfo.get();
         });
         std::cout << info.index << std::endl;

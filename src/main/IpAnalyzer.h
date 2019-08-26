@@ -15,12 +15,18 @@ class IndexInfo;
 class ArticleInfo;
 
 class IpAnalyzer {
+
     std::map<std::string, std::set<int>> ipAddrMap;
     std::map<int, std::set<std::string>> ipSharedMap;
     //Highlight name, Highlight reason
     std::map<std::string, std::list<std::string>> highlightMap;
     std::list<ArticleInfo> articleInfoList;
 public:
+
+    typedef std::map<std::string, std::set<int>> ID_ADDR_MAP;
+    typedef std::map<int, std::set<std::string>> IP_SHARED_MAP;
+    typedef std::map<std::string, std::list<std::string>> HIGHLIGHT_USER_MAP;
+
     void addParsedIndex(const IndexInfo &i_info);
 
     void addParsedDocument(const ArticleInfo &a_info);

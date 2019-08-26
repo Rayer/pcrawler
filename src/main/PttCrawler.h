@@ -52,7 +52,8 @@ public:
     explicit PttCrawler(const std::string &broadName);
     int GetMaxIndex();
     IndexInfo GetArticleInIndex(int index);
-    void ParseArticle(ArticleInfo& ainfo);
+
+    ArticleInfo &ParseArticle(ArticleInfo &articleInfo);
 
     virtual ~PttCrawler();
 };

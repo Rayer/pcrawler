@@ -96,7 +96,9 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
     return ret;
 }
 
-void PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
+//The reason returning articleinfo is for thread...
+//we need return value for identifying articleinfo.
+ArticleInfo &PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
     std::string content = this->GetRawHtml(articleInfo.url);
     CDocument doc;
     doc.parse(content);
@@ -140,6 +142,7 @@ void PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
             //do nothing
         }
     }
+    return articleInfo;
 }
 
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
