@@ -40,7 +40,7 @@ struct ArticleInfo {
 
 struct IndexInfo {
     int index;
-    std::vector<ArticleInfo> articles;
+    std::list<ArticleInfo> articles;
 
     friend std::ostream &operator<<(std::ostream &os, const IndexInfo &info);
 };
@@ -53,7 +53,7 @@ public:
     int GetMaxIndex();
     IndexInfo GetArticleInIndex(int index);
 
-    ArticleInfo &ParseArticle(ArticleInfo &articleInfo);
+    ArticleInfo ParseArticle(ArticleInfo &articleInfo);
 
     virtual ~PttCrawler();
 };

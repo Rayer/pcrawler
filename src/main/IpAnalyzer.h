@@ -14,35 +14,34 @@ class IndexInfo;
 
 class ArticleInfo;
 
+
 class IpAnalyzer {
 public:
-    typedef std::map<std::string, std::set<int>> IP_ADDR_MAP;
-    typedef std::map<int, std::set<std::string>> IP_SHARED_MAP;
+    typedef std::map<std::string, std::set<int>> ID_IPS_MAP;
+    typedef std::map<int, std::set<std::string>> IP_IDS_MAP;
     typedef std::map<std::string, std::list<std::string>> HIGHLIGHT_USER_MAP;
 
+    struct Result {
+        ID_IPS_MAP idIpsMap;
+        IP_IDS_MAP ipIdsMap;
+        HIGHLIGHT_USER_MAP highlightUserMap;
+        int idWithMultiIpThreshold;
+        int ipWithMultiIdThreshold;
+    };
+
 private:
-    IP_ADDR_MAP ipAddrMap;
-    IP_SHARED_MAP ipSharedMap;
-    //Highlight name, Highlight reason
-    HIGHLIGHT_USER_MAP highlightMap;
+    ID_IPS_MAP idIpsMap;
+    IP_IDS_MAP ipIdsMap;
     std::list<ArticleInfo> articleInfoList;
+
 public:
 
     void addParsedIndex(const IndexInfo &i_info);
-
     void addParsedDocument(const ArticleInfo &a_info);
 
-    const IP_ADDR_MAP &getIpAddrMap();
+    Result analyze(int idWithMultiIpThreshold = 3, int IpWithMultiIdThreshold = 2);
 
-    const IP_SHARED_MAP &getIpSharedMap();
-
-    const HIGHLIGHT_USER_MAP &getHighlightUserMap();
-
-    void printUserWithMultipleIp(std::ostream &os, int threshold = 2);
-
-    void printIpSharedByMultipleUser(std::ostream &os, int threshold = 2);
-
-    void whatDoesTheFoxSay(std::ostream &os);
+    void printReport(std::ostream &os, const Result &result);
 };
 
 

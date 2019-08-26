@@ -8,6 +8,7 @@
 #include <boost/format.hpp>
 #include <list>
 #include <IpAnalyzer.h>
+#include <PttCrawlerTask.h>
 #include "Utilities.h"
 
 static const int fetch_pages = 10;
@@ -30,9 +31,9 @@ TEST(Crawler_Test, IndexFetch) {
 TEST(Crawler_Test, IndexDetail) {
     PttCrawler *crawler = new PttCrawler(target);
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
-    for (int i = 0; i < indexInfo.articles.size(); ++i) {
-        std::cout << indexInfo.articles[i] << std::endl;
-    }
+    std::for_each(indexInfo.articles.begin(), indexInfo.articles.end(), [](const ArticleInfo &info) -> void {
+        std::cout << info << std::endl;
+    });
 
 }
 
@@ -75,10 +76,45 @@ TEST(Crawler_Test, MultipleIPDetect) {
     IpAnalyzer *ipAnalyzer = new IpAnalyzer();
 
     ipAnalyzer->addParsedIndex(indexInfo);
-    ipAnalyzer->printUserWithMultipleIp(std::cout);
-    ipAnalyzer->printIpSharedByMultipleUser(std::cout);
-    ipAnalyzer->whatDoesTheFoxSay(std::cout);
+    IpAnalyzer::Result result = ipAnalyzer->analyze();
+    ipAnalyzer->printReport(std::cout, result);
 
     delete ipAnalyzer;
     delete crawler;
+}
+
+TEST(CrawlerTask_Test, CallbackTest) {
+
+    class Callback : public PttCrawlerTaskCallback {
+        void processingIndex(int from, int to, int current) override {
+            std::cout << "processingIndex : " << from << " " << to << " " << current << std::endl;
+            std::cout.flush();
+        }
+
+        bool preProcessingDocument(const ArticleInfo &articleInfo) override {
+            std::cout << "preProcessingDocument : " << articleInfo << std::endl;
+            std::cout.flush();
+            return true;
+        }
+
+        void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) override {
+            std::cout << "doneProcessDocument : " << current << " " << total << " " << articleInfo << std::endl;
+            std::cout.flush();
+        }
+
+        void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,
+                             const IpAnalyzer::HIGHLIGHT_USER_MAP &highlightUserMap) override {
+            std::cout << "analyzerFinished : " << idAddrMap.size() << " " << ipSharedMap.size() << " "
+                      << highlightUserMap.size() << std::endl;
+            std::cout.flush();
+
+        }
+    };
+
+    Callback *cb = new Callback();
+    PttCrawlerTask *task = new PttCrawlerTask("Gossiping", cb);
+    task->startCrawl_recent(20);
+    task->generateReport(7, 2, std::cout);
+    delete cb;
+    delete task;
 }

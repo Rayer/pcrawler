@@ -8,6 +8,7 @@
 #include "Utilities.h"
 #include <sstream>
 #include <boost/format.hpp>
+#include <iomanip>
 
 void IpAnalyzer::addParsedIndex(const IndexInfo &i_info) {
     std::for_each(i_info.articles.begin(), i_info.articles.end(),
@@ -22,33 +23,29 @@ void IpAnalyzer::addParsedDocument(const ArticleInfo &a_info) {
             std::pair<std::string, std::set<int>> nameIpSetPair) -> void {
         std::string name = nameIpSetPair.first;
         std::set<int> &fromIpSet = nameIpSetPair.second;
-        //std::cout << "Adding ip info set : " << fromIpSet.size() << " and ipAddrMap size is " << ipAddrMap.size() << std::endl;
-        std::set<int> &toIpSet = ipAddrMap[name];
+        //std::cout << "Adding ip info set : " << fromIpSet.size() << " and idIpsMap size is " << idIpsMap.size() << std::endl;
+        std::set<int> &toIpSet = idIpsMap[name];
         toIpSet.insert(fromIpSet.begin(), fromIpSet.end());
 
         //Put ip into ip=>name map
         std::for_each(fromIpSet.begin(), fromIpSet.end(), [this, &name](int ip) -> void {
-            ipSharedMap[ip].insert(name);
+            ipIdsMap[ip].insert(name);
         });
     });
 }
 
-const IpAnalyzer::IP_ADDR_MAP &IpAnalyzer::getIpAddrMap() {
-    return this->ipAddrMap;
-}
 
-const IpAnalyzer::IP_SHARED_MAP &IpAnalyzer::getIpSharedMap() {
-    return this->ipSharedMap;
-}
+IpAnalyzer::Result IpAnalyzer::analyze(int idWithMultiIpThreshold, int IpWithMultiIdThreshold) {
 
-const IpAnalyzer::HIGHLIGHT_USER_MAP &IpAnalyzer::getHighlightUserMap() {
-    return this->highlightMap;
-}
+    IP_IDS_MAP filtered_IpIdsMap;
+    ID_IPS_MAP filtered_IdIpsMap;
+    HIGHLIGHT_USER_MAP highlightUserMap;
 
-void IpAnalyzer::printUserWithMultipleIp(std::ostream &os, int threshold) {
-    std::for_each(ipAddrMap.begin(), ipAddrMap.end(),
-                  [&os, threshold, this](const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
-                      if (nameIpSetPair.second.size() < threshold) return;
+    std::for_each(idIpsMap.begin(), idIpsMap.end(),
+                  [idWithMultiIpThreshold, &filtered_IdIpsMap, &highlightUserMap](
+                          const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
+                      if (nameIpSetPair.second.size() < idWithMultiIpThreshold) return;
+                      filtered_IdIpsMap.insert(nameIpSetPair);
                       std::ostringstream buf;
                       buf << nameIpSetPair.first << " (" << nameIpSetPair.second.size() << ") : ";
                       std::for_each(nameIpSetPair.second.begin(), nameIpSetPair.second.end(), [&buf](int ip) -> void {
@@ -56,15 +53,14 @@ void IpAnalyzer::printUserWithMultipleIp(std::ostream &os, int threshold) {
                       });
                       buf << std::endl;
                       std::string reason = buf.str();
-                      os << reason;
-                      highlightMap[nameIpSetPair.first].push_back(reason);
+                      highlightUserMap[nameIpSetPair.first].push_back(reason);
                   });
-}
 
-void IpAnalyzer::printIpSharedByMultipleUser(std::ostream &os, int threshold) {
-    std::for_each(ipSharedMap.begin(), ipSharedMap.end(),
-                  [&os, threshold, this](const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
-                      if (ipNameSetPair.second.size() < threshold) return;
+    std::for_each(ipIdsMap.begin(), ipIdsMap.end(),
+                  [IpWithMultiIdThreshold, &filtered_IpIdsMap, &highlightUserMap](
+                          const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
+                      if (ipNameSetPair.second.size() < IpWithMultiIdThreshold) return;
+                      filtered_IpIdsMap.insert(ipNameSetPair);
                       std::ostringstream buf;
                       buf << integerToIp4String(ipNameSetPair.first) << " (" << ipNameSetPair.second.size() << ") : ";
                       std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
@@ -74,16 +70,49 @@ void IpAnalyzer::printIpSharedByMultipleUser(std::ostream &os, int threshold) {
                       buf << std::endl;
                       std::string reason = buf.str();
                       std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
-                                    [this, &reason](const std::string &name) -> void {
-                                        highlightMap[name].push_back(reason);
+                                    [&reason, &highlightUserMap](const std::string &name) -> void {
+                                        highlightUserMap[name].push_back(reason);
                                     });
-                      os << reason;
                   });
+
+    return Result{filtered_IdIpsMap, filtered_IpIdsMap, highlightUserMap, idWithMultiIpThreshold,
+                  IpWithMultiIdThreshold};
 }
 
-void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
-    std::for_each(highlightMap.begin(), highlightMap.end(),
-                  [this, &os](const std::pair<std::string, std::list<std::string>> &nameReasonPair) -> void {
+void IpAnalyzer::printReport(std::ostream &os, const IpAnalyzer::Result &result) {
+    auto now = std::chrono::system_clock::now();
+    auto in_time_t = std::chrono::system_clock::to_time_t(now);
+
+    os << "Report generated at : " << std::put_time(std::localtime(&in_time_t), "%Y-%m-%d %X") << std::endl;
+    os << "User have used " << result.idWithMultiIpThreshold << " and more IPs : " << std::endl;
+    std::for_each(result.idIpsMap.begin(), result.idIpsMap.end(),
+                  [&os](const std::pair<std::string, std::set<int>> &nameIpSetPair) -> void {
+                      std::ostringstream buf;
+                      buf << nameIpSetPair.first << " (" << nameIpSetPair.second.size() << ") : ";
+                      std::for_each(nameIpSetPair.second.begin(), nameIpSetPair.second.end(), [&buf](int ip) -> void {
+                          buf << integerToIp4String(ip) << " ";
+                      });
+                      buf << std::endl;
+                      std::string reason = buf.str();
+                      os << reason;
+                  });
+
+    os << std::endl << "IPs with more then " << result.ipWithMultiIdThreshold << " users :" << std::endl;
+    //Print IP with multiple IDs
+    std::for_each(result.ipIdsMap.begin(), result.ipIdsMap.end(),
+                  [&os](const std::pair<int, std::set<std::string>> &ipNameSetPair) -> void {
+                      os << integerToIp4String(ipNameSetPair.first) << " (" << ipNameSetPair.second.size() << ") : ";
+                      std::for_each(ipNameSetPair.second.begin(), ipNameSetPair.second.end(),
+                                    [&os](const std::string &name) -> void {
+                                        os << name << " ";
+                                    });
+                      os << std::endl;
+                  });
+
+    //Highlight user maps
+    os << std::endl << "Highlighted user's commit, who have appeared in above lists : " << std::endl;
+    std::for_each(result.highlightUserMap.begin(), result.highlightUserMap.end(),
+                  [&os, this](const std::pair<std::string, std::list<std::string>> &nameReasonPair) -> void {
                       os << "Name : " << nameReasonPair.first << std::endl;
                       std::for_each(nameReasonPair.second.begin(), nameReasonPair.second.end(),
                                     [&os](const std::string &reason) -> void {
@@ -111,7 +140,6 @@ void IpAnalyzer::whatDoesTheFoxSay(std::ostream &os) {
                                                       });
                                     });
                   });
-
 }
 
 

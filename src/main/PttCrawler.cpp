@@ -73,7 +73,7 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
     std::string content = this->GetRawHtml(url);
     IndexInfo ret;
     ret.index = index;
-    std::vector<ArticleInfo> articleList;
+    std::list<ArticleInfo> articleList;
     CDocument doc;
     doc.parse(content);
     CSelection c = doc.find("div.r-ent");
@@ -98,7 +98,7 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
 
 //The reason returning articleinfo is for thread...
 //we need return value for identifying articleinfo.
-ArticleInfo &PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
+ArticleInfo PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
     std::string content = this->GetRawHtml(articleInfo.url);
     CDocument doc;
     doc.parse(content);
@@ -147,9 +147,10 @@ ArticleInfo &PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
 
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
     os << "index: " << info.index << std::endl;
-    for (int j = 0; j < info.articles.size(); ++j) {
-        os << info.articles[j] << std::endl;
-    }
+
+    std::for_each(info.articles.begin(), info.articles.end(), [&os](const ArticleInfo &a_info) -> void {
+        os << a_info << std::endl;
+    });
     return os;
 }
 

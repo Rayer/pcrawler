@@ -19,19 +19,20 @@ public:
 
     virtual void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) {};
 
-    virtual void analyerFinished(IpAnalyzer::IP_ADDR_MAP idAddrMap, IpAnalyzer::IP_SHARED_MAP ipSharedMap,
-                                 IpAnalyzer::HIGHLIGHT_USER_MAP highlightUserMap) = 0;
+    virtual void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,
+                                 const IpAnalyzer::HIGHLIGHT_USER_MAP &highlightUserMap) = 0;
 };
 
 class PttCrawlerTask {
     PttCrawlerTaskCallback *callback;
     PttCrawler *crawler;
-    bool downloading = false;
     std::list<IndexInfo> indexInfoList;
 public:
     explicit PttCrawlerTask(const std::string &boardName, PttCrawlerTaskCallback *callback = nullptr);
 
     void startCrawl_recent(int pages);
+
+    void doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold);
 
     void generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os);
 

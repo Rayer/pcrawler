@@ -4,7 +4,6 @@
 
 #include <future>
 #include <fstream>
-#include <iostream>
 #include "PttCrawlerTask.h"
 #include "PttCrawler.h"
 #include "IpAnalyzer.h"
@@ -32,24 +31,43 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
         indexInfoList.push_back(info);
     });
 
-    std::for_each(indexInfoList.begin(), indexInfoList.end(), [this](IndexInfo &info) -> void {
-        std::list<std::future<ArticleInfo &>> futureList;
-        //std::cout << "Start parsing index : " << info.index << std::endl;
-        std::for_each(info.articles.begin(), info.articles.end(), [this, &futureList](ArticleInfo &ainfo) -> void {
-            if (callback != nullptr && !callback->preProcessingDocument(ainfo)) return;
-            futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
-        });
-        std::for_each(futureList.begin(), futureList.end(),
-                      [this, idx = 1, &futureList](std::future<ArticleInfo &> &threadInfo) mutable -> void {
-                          ArticleInfo &info = threadInfo.get();
-                          if (callback != nullptr) {
-                              callback->doneProcessDocument(info, idx, futureList.size());
-                          }
-                          idx++;
-        });
+    //Very tricky one.....
+    std::list<std::reference_wrapper<ArticleInfo>> articleInfo;
+
+    std::for_each(indexInfoList.begin(), indexInfoList.end(), [&articleInfo](IndexInfo &info) -> void {
+        articleInfo.insert(articleInfo.end(), info.articles.begin(), info.articles.end());
     });
 
+
+    std::list<std::future<ArticleInfo>> futureList;
+    std::for_each(articleInfo.begin(), articleInfo.end(), [this, &futureList](ArticleInfo &ainfo) -> void {
+        if (callback != nullptr && !callback->preProcessingDocument(ainfo)) return;
+        futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
+    });
+    std::for_each(futureList.begin(), futureList.end(),
+                  [this, idx = 1, &futureList](std::future<ArticleInfo> &threadInfo) mutable -> void {
+                      ArticleInfo info = threadInfo.get();
+                      if (callback != nullptr) {
+                          callback->doneProcessDocument(info, idx, futureList.size());
+                      }
+                      idx++;
+                  });
+
 }
+//
+//void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {
+//    IpAnalyzer* analyzer = new IpAnalyzer();
+//
+//    IpAnalyzer::ID_IPS_MAP idIpsMap;
+//    IpAnalyzer::IP_IDS_MAP ipIdsMap;
+//    IpAnalyzer::Result result = analyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
+//    if(callback != nullptr) {
+//        callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
+//    }
+//
+//    delete analyzer;
+//}
+
 
 void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os) {
     IpAnalyzer *ipAnalyzer = new IpAnalyzer();
@@ -58,17 +76,13 @@ void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThr
         ipAnalyzer->addParsedIndex(i_info);
     });
 
+    IpAnalyzer::Result result = ipAnalyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
+
     if (callback != nullptr) {
-        callback->analyerFinished(ipAnalyzer->getIpAddrMap(), ipAnalyzer->getIpSharedMap(),
-                                  ipAnalyzer->getHighlightUserMap());
+        callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
     }
 
-    os << "User have used " << nameIpCountThreshold << " and more IPs : " << std::endl;
-    ipAnalyzer->printUserWithMultipleIp(os, nameIpCountThreshold);
-    os << std::endl << "IPs with more then " << ipNameCountThreshold << " users :" << std::endl;
-    ipAnalyzer->printIpSharedByMultipleUser(os, ipNameCountThreshold);
-    os << std::endl << "Highlighted user's commit, who have appeared in above lists : " << std::endl;
-    ipAnalyzer->whatDoesTheFoxSay(os);
+    ipAnalyzer->printReport(os, result);
 
     delete ipAnalyzer;
 }
