@@ -22,38 +22,38 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
     for (int i = from; i > 0 && i > to; --i) {
         threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
     }
-    std::for_each(threadList.begin(), threadList.end(), [this, from, to](std::future<IndexInfo> &threadInfo) -> void {
+    int articleCount = 0;
+    std::for_each(threadList.begin(), threadList.end(),
+                  [this, from, to, &articleCount](std::future<IndexInfo> &threadInfo) -> void {
         IndexInfo info = threadInfo.get();
         if (callback != nullptr) {
             callback->processingIndex(from, to, info.index);
         }
         indexInfoList.push_back(info);
-    });
-
-    //Very tricky one.....
-    std::list<std::reference_wrapper<ArticleInfo>> articleInfo;
-
-    std::for_each(indexInfoList.begin(), indexInfoList.end(), [&articleInfo](IndexInfo &info) -> void {
-        articleInfo.insert(articleInfo.end(), info.articles.begin(), info.articles.end());
+                      articleCount += info.articles.size();
     });
 
 
-    std::list<std::future<ArticleInfo>> futureList;
-
-    //抓太快會被當ddos denial, 所以以100筆為單位來抓最好
-    //這個幾筆可以考慮一下
-    std::for_each(articleInfo.begin(), articleInfo.end(), [this, &futureList](ArticleInfo &ainfo) -> void {
-        if (callback != nullptr && !callback->preProcessingDocument(ainfo)) return;
-        futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
+    std::for_each(indexInfoList.begin(), indexInfoList.end(),
+                  [this, articleCount, currentArticle = 1](IndexInfo &info) mutable -> void {
+                      //articleInfo.insert(articleInfo.end(), info.articles.begin(), info.articles.end());
+                      std::list<std::future<ArticleInfo>> futureList;
+                      std::for_each(info.articles.begin(), info.articles.end(),
+                                    [this, &futureList, articleCount, &currentArticle](
+                                            ArticleInfo &articleInfo) -> void {
+                                        futureList.push_back(
+                                                std::async(&PttCrawler::ParseArticle, crawler, std::ref(articleInfo)));
+                                    });
+                      std::for_each(futureList.begin(), futureList.end(),
+                                    [this, idx = 1, &futureList, articleCount, &currentArticle](
+                                            std::future<ArticleInfo> &threadInfo) -> void {
+                                        ArticleInfo info = threadInfo.get();
+                                        if (callback != nullptr) {
+                                            callback->doneProcessDocument(info, currentArticle, articleCount);
+                                        }
+                                        currentArticle++;
+                                    });
     });
-    std::for_each(futureList.begin(), futureList.end(),
-                  [this, idx = 1, &futureList](std::future<ArticleInfo> &threadInfo) mutable -> void {
-                      ArticleInfo info = threadInfo.get();
-                      if (callback != nullptr) {
-                          callback->doneProcessDocument(info, idx, futureList.size());
-                      }
-                      idx++;
-                  });
 
 }
 
