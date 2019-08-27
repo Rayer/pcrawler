@@ -33,6 +33,7 @@ std::string PttCrawler::GetRawHtml(const std::string &url) {
 
     curl_easy_setopt(curl, CURLOPT_COOKIE, "over18=1");
     CURLcode res = curl_easy_perform(curl);
+
     //std::fprintf(fp, "Return code : %d", res);
     curl_easy_cleanup(curl);
     //return std::string(buf);

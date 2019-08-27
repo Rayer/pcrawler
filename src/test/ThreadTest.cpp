@@ -95,7 +95,7 @@ TEST(ThreadTest, StressMultiIpDetectionWithThread) {
         indexInfoList.push_back(threadInfo.get());
     });
     //IndexInfo won't multi thread but articleList will
-    IpAnalyzer *ipAnalyzer = new IpAnalyzer();
+    auto *ipAnalyzer = new IpAnalyzer();
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler, ipAnalyzer](IndexInfo &info) -> void {
         std::list<std::future<ArticleInfo>> futureList;
         std::for_each(info.articles.begin(), info.articles.end(), [crawler, &futureList](ArticleInfo &ainfo) -> void {

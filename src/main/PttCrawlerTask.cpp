@@ -3,7 +3,6 @@
 //
 
 #include <future>
-#include <fstream>
 #include "PttCrawlerTask.h"
 #include "PttCrawler.h"
 #include "IpAnalyzer.h"
@@ -40,6 +39,9 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
 
 
     std::list<std::future<ArticleInfo>> futureList;
+
+    //抓太快會被當ddos denial, 所以以100筆為單位來抓最好
+    //這個幾筆可以考慮一下
     std::for_each(articleInfo.begin(), articleInfo.end(), [this, &futureList](ArticleInfo &ainfo) -> void {
         if (callback != nullptr && !callback->preProcessingDocument(ainfo)) return;
         futureList.push_back(std::async(&PttCrawler::ParseArticle, crawler, std::ref(ainfo)));
@@ -54,23 +56,23 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
                   });
 
 }
-//
-//void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {
-//    IpAnalyzer* analyzer = new IpAnalyzer();
-//
-//    IpAnalyzer::ID_IPS_MAP idIpsMap;
-//    IpAnalyzer::IP_IDS_MAP ipIdsMap;
-//    IpAnalyzer::Result result = analyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
-//    if(callback != nullptr) {
-//        callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
-//    }
-//
-//    delete analyzer;
-//}
+
+void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {
+    IpAnalyzer* analyzer = new IpAnalyzer();
+
+    IpAnalyzer::ID_IPS_MAP idIpsMap;
+    IpAnalyzer::IP_IDS_MAP ipIdsMap;
+    IpAnalyzer::Result result = analyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
+    if(callback != nullptr) {
+        callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
+    }
+
+    delete analyzer;
+}
 
 
 void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os) {
-    IpAnalyzer *ipAnalyzer = new IpAnalyzer();
+    auto *ipAnalyzer = new IpAnalyzer();
 
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [&ipAnalyzer](const IndexInfo &i_info) -> void {
         ipAnalyzer->addParsedIndex(i_info);

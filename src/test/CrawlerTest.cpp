@@ -17,7 +17,7 @@ static const char* target = "Gossiping";
 TEST(Crawler_Test, IndexFetch) {
 
 
-    PttCrawler *crawler = new PttCrawler(target);
+    auto *crawler = new PttCrawler(target);
     int max_index = crawler->GetMaxIndex();
 
     std::cout << "Max index for " << target << " is " << crawler->GetMaxIndex() << std::endl;
@@ -29,7 +29,7 @@ TEST(Crawler_Test, IndexFetch) {
 }
 
 TEST(Crawler_Test, IndexDetail) {
-    PttCrawler *crawler = new PttCrawler(target);
+    auto *crawler = new PttCrawler(target);
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     std::for_each(indexInfo.articles.begin(), indexInfo.articles.end(), [](const ArticleInfo &info) -> void {
         std::cout << info << std::endl;
@@ -39,7 +39,7 @@ TEST(Crawler_Test, IndexDetail) {
 
 TEST(CrawlerTest, DocParse) {
     std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
-    PttCrawler *crawler = new PttCrawler(target);
+    auto *crawler = new PttCrawler(target);
 
     ArticleInfo info;
     info.url = url;
@@ -50,7 +50,7 @@ TEST(CrawlerTest, DocParse) {
 
 
 TEST(Crawler_Test, DocumentParse) {
-    PttCrawler *crawler = new PttCrawler(target);
+    auto *crawler = new PttCrawler(target);
 
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(), [crawler](ArticleInfo& info)->ArticleInfo{
@@ -64,7 +64,7 @@ TEST(Crawler_Test, DocumentParse) {
 }
 
 TEST(Crawler_Test, MultipleIPDetect) {
-    PttCrawler *crawler = new PttCrawler(target);
+    auto *crawler = new PttCrawler(target);
 
     IndexInfo indexInfo = crawler->GetArticleInIndex(700);
     std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(),
@@ -73,7 +73,7 @@ TEST(Crawler_Test, MultipleIPDetect) {
                        return info;
                    });
 
-    IpAnalyzer *ipAnalyzer = new IpAnalyzer();
+    auto *ipAnalyzer = new IpAnalyzer();
 
     ipAnalyzer->addParsedIndex(indexInfo);
     IpAnalyzer::Result result = ipAnalyzer->analyze();
@@ -111,8 +111,8 @@ TEST(CrawlerTask_Test, CallbackTest) {
         }
     };
 
-    Callback *cb = new Callback();
-    PttCrawlerTask *task = new PttCrawlerTask("Gossiping", cb);
+    auto *cb = new Callback();
+    auto *task = new PttCrawlerTask("Gossiping", cb);
     task->startCrawl_recent(20);
     task->generateReport(7, 2, std::cout);
     delete cb;
