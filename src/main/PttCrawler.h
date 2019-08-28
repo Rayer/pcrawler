@@ -35,6 +35,9 @@ struct ArticleInfo {
     //userid / ip
     std::map<std::string, std::set<int>> ipUserInfoMap;
 
+    //Will exclude if it is pinned article(置頂)
+    bool willExclude = false;
+
     friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
 };
 

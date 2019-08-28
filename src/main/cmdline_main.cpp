@@ -15,13 +15,12 @@ class Callback : public PttCrawlerTaskCallback {
     }
 
     bool preProcessingDocument(const ArticleInfo &articleInfo) override {
-        std::cout << "preProcessingDocument : " << articleInfo << std::endl;
-        std::cout.flush();
-        return true;
+        //去掉置底(頂)
+        return !articleInfo.willExclude;
     }
 
     void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) override {
-        std::cout << "doneProcessDocument : " << current << " " << total << " " << articleInfo << std::endl;
+        std::cout << "doneProcessDocument : " << current << " " << total << " " << articleInfo.title << std::endl;
         std::cout.flush();
     }
 

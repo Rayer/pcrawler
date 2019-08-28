@@ -37,6 +37,15 @@ TEST(Crawler_Test, IndexDetail) {
 
 }
 
+TEST(Crawler_Test, PinnedArticleTest) {
+    auto *crawler = new PttCrawler(target);
+    IndexInfo indexInfo = crawler->GetArticleInIndex(crawler->GetMaxIndex());
+    std::for_each(indexInfo.articles.begin(), indexInfo.articles.end(), [](const ArticleInfo &info) -> void {
+        std::cout << info << std::endl;
+    });
+
+}
+
 TEST(CrawlerTest, DocParse) {
     std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
     auto *crawler = new PttCrawler(target);

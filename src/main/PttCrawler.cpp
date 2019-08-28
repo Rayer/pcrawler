@@ -34,6 +34,16 @@ std::string PttCrawler::GetRawHtml(const std::string &url) {
     curl_easy_setopt(curl, CURLOPT_COOKIE, "over18=1");
     CURLcode res = curl_easy_perform(curl);
 
+    if (res != CURLE_OK) {
+        std::cerr << "Error code : " << res << " when fetching " << url << std::endl;
+    } else {
+        long response_code;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+        if (response_code - 200 > 100) {
+            std::cerr << "HTTP error code : " << response_code << " when fetching " << url << std::endl;
+        }
+    }
+
     //std::fprintf(fp, "Return code : %d", res);
     curl_easy_cleanup(curl);
     //return std::string(buf);
@@ -76,7 +86,20 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
     ret.index = index;
     std::list<ArticleInfo> articleList;
     CDocument doc;
+
+    //把<div class="r-list-sep"></div>偷加一個id
+    static const std::string target = "<div class=\"r-list-sep\"></div>";
+
+
     doc.parse(content);
+    //把置底的文章tag起來
+    CSelection pinned = doc.find("div.r-list-sep~div");
+    for (auto i = 0; i < pinned.nodeNum(); ++i) {
+        CNode articleNode = pinned.nodeAt(i);
+        std::cout << articleNode.text() << std::endl;
+    }
+
+
     CSelection c = doc.find("div.r-ent");
     for(auto i = 0; i < c.nodeNum(); ++i) {
         ArticleInfo info;
@@ -93,6 +116,8 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
         info.index = index;
         articleList.push_back(info);
     }
+
+
     ret.articles = articleList;
     return ret;
 }
