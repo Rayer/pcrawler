@@ -9,18 +9,24 @@
 namespace bpo = boost::program_options;
 
 class Callback : public PttCrawlerTaskCallback {
+
     void processingIndex(int from, int to, int current) override {
         std::cout << "processingIndex : " << from << " " << to << " " << current << std::endl;
         std::cout.flush();
     }
 
-    bool preProcessingDocument(const ArticleInfo &articleInfo) override {
-        //去掉置底(頂)
-        return !articleInfo.willExclude;
+    bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
+        if (std::chrono::system_clock::now() - articleInfo.parsedTime > std::chrono::hours(48)) {
+            std::cout << "Dropped article " << articleInfo.title << "(" << articleInfo.url
+                      << ") due to it's 48 hours ago" << std::endl;
+            std::cout << articleInfo << std::endl;
+            return false;
+        }
+        return true;
     }
 
-    void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) override {
-        std::cout << "doneProcessDocument : " << current << " " << total << " " << articleInfo.title << std::endl;
+    void doneParseDocument(const ArticleInfo &articleInfo, int current, int total) override {
+        std::cout << "doneParseDocument : " << current << " " << total << " " << articleInfo.title << std::endl;
         std::cout.flush();
     }
 

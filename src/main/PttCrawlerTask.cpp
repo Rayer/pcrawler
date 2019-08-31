@@ -49,7 +49,7 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
                                             std::future<ArticleInfo> &threadInfo) -> void {
                                         ArticleInfo info = threadInfo.get();
                                         if (callback != nullptr) {
-                                            callback->doneProcessDocument(info, currentArticle, articleCount);
+                                            callback->doneParseDocument(info, currentArticle, articleCount);
                                         }
                                         currentArticle++;
                                     });
@@ -74,8 +74,15 @@ void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshol
 void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os) {
     auto *ipAnalyzer = new IpAnalyzer();
 
-    std::for_each(indexInfoList.begin(), indexInfoList.end(), [&ipAnalyzer](const IndexInfo &i_info) -> void {
-        ipAnalyzer->addParsedIndex(i_info);
+    std::for_each(indexInfoList.begin(), indexInfoList.end(), [&ipAnalyzer, this](const IndexInfo &i_info) -> void {
+        //ipAnalyzer->addParsedIndex(i_info);
+        std::for_each(i_info.articles.begin(), i_info.articles.end(),
+                      [&ipAnalyzer, this](const ArticleInfo &a_info) -> void {
+                          if (callback != nullptr && !callback->shouldIncludeInReport(a_info)) {
+                              return;
+                          }
+                          ipAnalyzer->addParsedDocument(a_info);
+                      });
     });
 
     IpAnalyzer::Result result = ipAnalyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);

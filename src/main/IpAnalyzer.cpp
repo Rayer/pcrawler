@@ -113,7 +113,8 @@ void IpAnalyzer::printReport(std::ostream &os, const IpAnalyzer::Result &result)
     os << std::endl << "Highlighted user's commit, who have appeared in above lists : " << std::endl;
     std::for_each(result.highlightUserMap.begin(), result.highlightUserMap.end(),
                   [&os, this](const std::pair<std::string, std::list<std::string>> &nameReasonPair) -> void {
-                      os << "Name : " << nameReasonPair.first << std::endl;
+                      os << "-------------------------------------------" << std::endl << "Name : "
+                         << nameReasonPair.first << std::endl;
                       std::for_each(nameReasonPair.second.begin(), nameReasonPair.second.end(),
                                     [&os](const std::string &reason) -> void {
                                         os << reason;
@@ -139,6 +140,7 @@ void IpAnalyzer::printReport(std::ostream &os, const IpAnalyzer::Result &result)
                                                           }
                                                       });
                                     });
+                      os << std::endl;
                   });
 }
 

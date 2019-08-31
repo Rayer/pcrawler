@@ -15,9 +15,9 @@ class PttCrawlerTaskCallback {
 public:
     virtual void processingIndex(int from, int to, int current) {};
 
-    virtual bool preProcessingDocument(const ArticleInfo &articleInfo) { return true; }
+    virtual bool shouldIncludeInReport(const ArticleInfo &articleInfo) { return true; }
 
-    virtual void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) {};
+    virtual void doneParseDocument(const ArticleInfo &articleInfo, int current, int total) {};
 
     virtual void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,
                                  const IpAnalyzer::HIGHLIGHT_USER_MAP &highlightUserMap) = 0;

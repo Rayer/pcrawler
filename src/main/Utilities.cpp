@@ -10,7 +10,7 @@ int ip4ToInteger(std::string ipStr) {
 }
 
 std::string integerToIp4String(int ip) {
-    in_addr paddr;
+    in_addr paddr{};
     paddr.s_addr = ip;
     return std::string(inet_ntoa(paddr));
 }

@@ -11,42 +11,9 @@
 #include <map>
 #include <set>
 #include <list>
-
-struct ArticleInfo {
-    int index;
-    std::string title;
-    std::string author;
-    std::string date;
-    std::string url;
-
-    std::map<std::string, int> pusherMap;
-    std::map<std::string, int> haterMap;
-    std::map<std::string, std::list<std::string>> commitMap;
-
-    int parsedPlusScore = 0;
-    int parsedNegativeScore = 0;
-    //int parsedNeutralScore;
-
-    //Parse from article
-    int parsedArticleScore = 0;
-    //Show on Index
-    std::string shownArticleScore;
-
-    //userid / ip
-    std::map<std::string, std::set<int>> ipUserInfoMap;
-
-    //Will exclude if it is pinned article(置頂)
-    bool willExclude = false;
-
-    friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
-};
-
-struct IndexInfo {
-    int index;
-    std::list<ArticleInfo> articles;
-
-    friend std::ostream &operator<<(std::ostream &os, const IndexInfo &info);
-};
+#include <chrono>
+#include "ArticleInfo.h"
+#include "IndexInfo.h"
 
 class PttCrawler {
     std::string broadName;

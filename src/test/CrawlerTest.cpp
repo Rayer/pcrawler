@@ -44,15 +44,23 @@ TEST(Crawler_Test, PinnedArticleTest) {
         std::cout << info << std::endl;
     });
 
+    for_each(indexInfo.articles.begin(), indexInfo.articles.end(), [crawler](ArticleInfo &article) -> void {
+        crawler->ParseArticle(article);
+        std::cout << article << std::endl;
+    });
+
+    delete crawler;
 }
 
 TEST(CrawlerTest, DocParse) {
-    std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
+    //std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
+    std::string url{"https://www.ptt.cc/bbs/Gossiping/M.1567144923.A.E94.html"};
     auto *crawler = new PttCrawler(target);
 
     ArticleInfo info;
     info.url = url;
     crawler->ParseArticle(info);
+    std::cout << info << std::endl;
 
     delete crawler;
 }
@@ -100,14 +108,19 @@ TEST(CrawlerTask_Test, CallbackTest) {
             std::cout.flush();
         }
 
-        bool preProcessingDocument(const ArticleInfo &articleInfo) override {
-            std::cout << "preProcessingDocument : " << articleInfo << std::endl;
-            std::cout.flush();
+        bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
+            std::cout << "shouldIncludeInReport : " << articleInfo << std::endl;
+
+            if (std::chrono::system_clock::now() - std::chrono::hours(48) > articleInfo.parsedTime) {
+                std::cout << "Dropped article " << articleInfo.title << "(" << articleInfo.url
+                          << ") due to it's 48 hours ago" << std::endl;
+                return false;
+            }
             return true;
         }
 
-        void doneProcessDocument(const ArticleInfo &articleInfo, int current, int total) override {
-            std::cout << "doneProcessDocument : " << current << " " << total << " " << articleInfo << std::endl;
+        void doneParseDocument(const ArticleInfo &articleInfo, int current, int total) override {
+            std::cout << "doneParseDocument : " << current << " " << total << " " << articleInfo << std::endl;
             std::cout.flush();
         }
 
@@ -122,7 +135,7 @@ TEST(CrawlerTask_Test, CallbackTest) {
 
     auto *cb = new Callback();
     auto *task = new PttCrawlerTask("Gossiping", cb);
-    task->startCrawl_recent(20);
+    task->startCrawl_recent(1);
     task->generateReport(7, 2, std::cout);
     delete cb;
     delete task;

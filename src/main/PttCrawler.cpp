@@ -13,6 +13,8 @@
 #include <regex>
 #include "Utilities.h"
 #include <iostream>
+#include <iomanip>
+#include <ctime>
 
 
 std::string PttCrawler::GetRawHtml(const std::string &url) {
@@ -88,18 +90,10 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
     CDocument doc;
 
     //把<div class="r-list-sep"></div>偷加一個id
-    static const std::string target = "<div class=\"r-list-sep\"></div>";
-
-
+    static const std::string target = R"(<div class="r-list-sep"></div>)";
+    static const std::string change = R"(<div class="r-list-sep" id="seperator"></div>)";
+    boost::replace_first(content, target, change);
     doc.parse(content);
-    //把置底的文章tag起來
-    CSelection pinned = doc.find("div.r-list-sep~div");
-    for (auto i = 0; i < pinned.nodeNum(); ++i) {
-        CNode articleNode = pinned.nodeAt(i);
-        std::cout << articleNode.text() << std::endl;
-    }
-
-
     CSelection c = doc.find("div.r-ent");
     for(auto i = 0; i < c.nodeNum(); ++i) {
         ArticleInfo info;
@@ -111,6 +105,8 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
         } else {
             continue;
         }
+
+
         info.url = "https://www.ptt.cc" + articleNode.find("a").nodeAt(0).attribute("href");
         info.author = articleNode.find(".meta").nodeAt(0).find(".author").nodeAt(0).text();
         info.index = index;
@@ -128,6 +124,18 @@ ArticleInfo PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
     std::string content = this->GetRawHtml(articleInfo.url);
     CDocument doc;
     doc.parse(content);
+
+    CSelection meta = doc.find(".article-metaline");
+    for (auto i = 0; i < meta.nodeNum(); ++i) {
+        CNode spanNode = meta.nodeAt(i).find("span.article-meta-tag").nodeAt(0);
+        if (spanNode.text() == "時間") {
+            std::tm articleTime;
+            std::istringstream dateTime(spanNode.nextSibling().text());
+            dateTime >> std::get_time(&articleTime, "%A %B %d %H:%M:%S %Y");
+            articleInfo.parsedTime = std::chrono::system_clock::from_time_t(std::mktime(&articleTime));
+        }
+    }
+
     //Parse push
     //要處理 </span></div><div class="push center warning-box">檔案過大！部分文章無法顯示</div>
     CSelection pushes = doc.find("div.push:not(.warning-box)");
@@ -171,20 +179,3 @@ ArticleInfo PttCrawler::ParseArticle(ArticleInfo &articleInfo) {
     return articleInfo;
 }
 
-std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
-    os << "index: " << info.index << std::endl;
-
-    std::for_each(info.articles.begin(), info.articles.end(), [&os](const ArticleInfo &a_info) -> void {
-        os << a_info << std::endl;
-    });
-    return os;
-}
-
-std::ostream &operator<<(std::ostream &os, const ArticleInfo &info) {
-    os << "index: " << info.index << " title: " << info.title << " author: " << info.author << " date: " << info.date
-       << " url: " << info.url << " pusherMap: " << info.pusherMap.size() << " haterMap: " << info.haterMap.size()
-       << " parsedPlusScore: " << info.parsedPlusScore << " parsedNegativeScore: " << info.parsedNegativeScore
-       << " parsedArticleScore: " << info.parsedArticleScore << " shownArticleScore: " << info.shownArticleScore
-       << " ipUserInfoMap: " << info.ipUserInfoMap.size();
-    return os;
-}

@@ -11,7 +11,7 @@
 
 static const int fetch_pages = 10;
 static const char *target = "gossiping";
-static const int stress_fetch_pages = 10;
+static const int stress_fetch_pages = 50;
 
 TEST(ThreadTest, StressIndexWithoutThread) {
     PttCrawler *crawler = new PttCrawler(target);
