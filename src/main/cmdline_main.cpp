@@ -7,12 +7,16 @@
 #include "PttCrawlerTask.h"
 #include <cmath>
 #include <iomanip>
-#include <boost/format.hpp>
 
 namespace bpo = boost::program_options;
 
 class Callback : public PttCrawlerTaskCallback {
-
+private:
+    int article_ignore_age_threshold;
+public:
+    explicit Callback(int ignore_older_hour_article) {
+        article_ignore_age_threshold = ignore_older_hour_article;
+    }
     void processingIndex(int from, int to, int current) override {
         float done_block = (float(std::abs(current - from)) / float(std::abs(from - to))) / 0.02f; //2% per block
         std::string progressBar{"[--------------------------------------------------]"};
@@ -26,9 +30,10 @@ class Callback : public PttCrawlerTaskCallback {
     }
 
     bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
-        if (std::chrono::system_clock::now() - articleInfo.parsedTime > std::chrono::hours(48)) {
+        if (std::chrono::system_clock::now() - articleInfo.parsedTime >
+            std::chrono::hours(article_ignore_age_threshold)) {
             std::cout << "Dropped article " << articleInfo.title << "(" << articleInfo.url
-                      << ") due to it's 48 hours ago" << std::endl;
+                      << ") due to it's " << article_ignore_age_threshold << " hours ago" << std::endl;
             std::cout << articleInfo << std::endl;
             return false;
         }
@@ -64,7 +69,8 @@ int main(int argc, char *argv[]) {
             ("board,b", bpo::value<std::string>()->required(), "Board name")
             ("pages,p", bpo::value<int>()->required(), "Parse page n from most recent")
             ("ip_count_threshold", bpo::value<int>()->default_value(6), "User with different IP threshold.")
-            ("same_ip_name_threshold", bpo::value<int>()->default_value(4), "Same IP with user threshold.");
+            ("same_ip_name_threshold", bpo::value<int>()->default_value(4), "Same IP with user threshold.")
+            ("ignore_old_post_hour", bpo::value<int>()->default_value(48), "Don't analyze article older then n hours");
 
     bpo::variables_map opts;
     bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
@@ -82,8 +88,9 @@ int main(int argc, char *argv[]) {
     int pages = opts["pages"].as<int>();
     int ipCountThreshold = opts["ip_count_threshold"].as<int>();
     int ipWithNameThreshold = opts["same_ip_name_threshold"].as<int>();
+    int article_ignore_age_threshold = opts["ignore_old_post_hour"].as<int>();
 
-    auto* callback = new Callback();
+    auto *callback = new Callback(article_ignore_age_threshold);
 
     PttCrawlerTask task(opts["board"].as<std::string>(), callback);
     std::cout << "Start download and parsing..." << std::endl;
