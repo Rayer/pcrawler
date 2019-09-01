@@ -69,7 +69,7 @@ TEST(CrawlerTest, DocParse) {
 TEST(Crawler_Test, DocumentParse) {
     auto *crawler = new PttCrawler(target);
 
-    IndexInfo indexInfo = crawler->GetArticleInIndex(700);
+    IndexInfo indexInfo = crawler->GetArticleInIndex(crawler->GetMaxIndex());
     std::transform(indexInfo.articles.begin(), indexInfo.articles.end(), indexInfo.articles.begin(), [crawler](ArticleInfo& info)->ArticleInfo{
         crawler->ParseArticle(info);
         return info;

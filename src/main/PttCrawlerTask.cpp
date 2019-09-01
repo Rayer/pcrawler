@@ -6,6 +6,7 @@
 #include "PttCrawlerTask.h"
 #include "PttCrawler.h"
 #include "IpAnalyzer.h"
+#include "ThreadPool.h"
 
 PttCrawlerTask::PttCrawlerTask(const std::string &boardName, PttCrawlerTaskCallback *callback) : crawler(
         new PttCrawler(boardName)), callback(callback) {}
@@ -19,8 +20,12 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
     std::list<std::future<IndexInfo>> threadList;
     int from = max_index;
     int to = max_index - pages;
+
+    ThreadPool index_tp{20};
+
     for (int i = from; i > 0 && i > to; --i) {
-        threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
+        //threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
+        threadList.push_back(index_tp.enqueue(std::bind(&PttCrawler::GetArticleInIndex, crawler, i)));
     }
     int articleCount = 0;
     std::for_each(threadList.begin(), threadList.end(),
@@ -33,28 +38,33 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
                       articleCount += info.articles.size();
     });
 
+    ThreadPool article_tp{20};
+    std::list<std::future<ArticleInfo>> futureList;
 
     std::for_each(indexInfoList.begin(), indexInfoList.end(),
-                  [this, articleCount, currentArticle = 1](IndexInfo &info) mutable -> void {
+                  [this, articleCount, &article_tp, &futureList](IndexInfo &info) mutable -> void {
                       //articleInfo.insert(articleInfo.end(), info.articles.begin(), info.articles.end());
-                      std::list<std::future<ArticleInfo>> futureList;
                       std::for_each(info.articles.begin(), info.articles.end(),
-                                    [this, &futureList, articleCount, &currentArticle](
+                                    [this, &futureList, articleCount, &article_tp](
                                             ArticleInfo &articleInfo) -> void {
                                         futureList.push_back(
-                                                std::async(&PttCrawler::ParseArticle, crawler, std::ref(articleInfo)));
+                                                //std::async(&PttCrawler::ParseArticle, crawler, std::ref(articleInfo)));
+                                                article_tp.enqueue(std::bind(&PttCrawler::ParseArticle, crawler,
+                                                                             std::ref(articleInfo))));
                                     });
-                      std::for_each(futureList.begin(), futureList.end(),
-                                    [this, idx = 1, &futureList, articleCount, &currentArticle](
-                                            std::future<ArticleInfo> &threadInfo) -> void {
-                                        ArticleInfo info = threadInfo.get();
-                                        if (callback != nullptr) {
-                                            callback->doneParseDocument(info, currentArticle, articleCount);
-                                        }
-                                        currentArticle++;
-                                    });
-    });
 
+
+                  });
+
+    std::for_each(futureList.begin(), futureList.end(),
+                  [this, currentArticle = 1, &futureList, articleCount](
+                          std::future<ArticleInfo> &threadInfo) mutable -> void {
+                      ArticleInfo info = threadInfo.get();
+                      if (callback != nullptr) {
+                          callback->doneParseDocument(info, currentArticle, articleCount);
+                      }
+                      currentArticle++;
+                  });
 }
 
 void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {

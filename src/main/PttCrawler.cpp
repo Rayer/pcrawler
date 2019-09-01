@@ -89,10 +89,6 @@ IndexInfo PttCrawler::GetArticleInIndex(int index) {
     std::list<ArticleInfo> articleList;
     CDocument doc;
 
-    //把<div class="r-list-sep"></div>偷加一個id
-    static const std::string target = R"(<div class="r-list-sep"></div>)";
-    static const std::string change = R"(<div class="r-list-sep" id="seperator"></div>)";
-    boost::replace_first(content, target, change);
     doc.parse(content);
     CSelection c = doc.find("div.r-ent");
     for(auto i = 0; i < c.nodeNum(); ++i) {
