@@ -20,7 +20,7 @@ public:
     void processingIndex(int from, int to, int current) override {
         float done_block = (float(std::abs(current - from)) / float(std::abs(from - to))) / 0.02f; //2% per block
         std::string progressBar{"[--------------------------------------------------]"};
-        std::fill_n(progressBar.begin() + 1, done_block, '#');
+        std::fill_n(progressBar.begin() + 1, (int) done_block, '#');
         std::cout << "\r" << progressBar << done_block * 2 << "% Fetching index URL : "
                   << "https://www.ptt.cc/bbs/Gossiping/index" << current << ".html";
         if (to == current) {
@@ -30,6 +30,10 @@ public:
     }
 
     bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
+        if (article_ignore_age_threshold == 0) {
+            return true;
+        }
+
         if (std::chrono::system_clock::now() - articleInfo.parsedTime >
             std::chrono::hours(article_ignore_age_threshold)) {
             std::cout << "Dropped article " << articleInfo.title << "(" << articleInfo.url
@@ -43,7 +47,7 @@ public:
     void doneParseDocument(const ArticleInfo &articleInfo, int current, int total) override {
         float done_block = (float(current) / float(total)) / 0.02f; //5% per block
         std::string progressBar{"[--------------------------------------------------]"};
-        std::fill_n(progressBar.begin() + 1, done_block, '#');
+        std::fill_n(progressBar.begin() + 1, (int) done_block, '#');
         std::cout << "\r" << progressBar << done_block * 2 << "% " << articleInfo.title;
         if (total == current) {
             std::cout << std::endl;
@@ -70,7 +74,8 @@ int main(int argc, char *argv[]) {
             ("pages,p", bpo::value<int>()->required(), "Parse page n from most recent")
             ("ip_count_threshold", bpo::value<int>()->default_value(6), "User with different IP threshold.")
             ("same_ip_name_threshold", bpo::value<int>()->default_value(4), "Same IP with user threshold.")
-            ("ignore_old_post_hour", bpo::value<int>()->default_value(48), "Don't analyze article older then n hours");
+            ("ignore_old_post_hour", bpo::value<int>()->default_value(0),
+             "Don't analyze article older then n hours. 0 = no drop");
 
     bpo::variables_map opts;
     bpo::store(bpo::parse_command_line(argc, argv, desc), opts);

@@ -4,6 +4,7 @@
 
 #include "IndexInfo.h"
 #include <iostream>
+#include <algorithm>
 
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info) {
     os << "index: " << info.index << std::endl;
