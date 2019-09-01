@@ -5,14 +5,24 @@
 #include <iostream>
 #include <fstream>
 #include "PttCrawlerTask.h"
+#include <cmath>
+#include <iomanip>
+#include <boost/format.hpp>
 
 namespace bpo = boost::program_options;
 
 class Callback : public PttCrawlerTaskCallback {
 
     void processingIndex(int from, int to, int current) override {
-        std::cout << "processingIndex : " << from << " " << to << " " << current << std::endl;
-        std::cout.flush();
+        float done_block = (float(std::abs(current - from)) / float(std::abs(from - to))) / 0.02f; //2% per block
+        std::string progressBar{"[--------------------------------------------------]"};
+        std::fill_n(progressBar.begin() + 1, done_block, '#');
+        std::cout << "\r" << progressBar << done_block * 2 << "% Fetching index URL : "
+                  << "https://www.ptt.cc/bbs/Gossiping/index" << current << ".html";
+        if (to == current) {
+            std::cout << std::endl;
+        }
+        std::cout << std::flush;
     }
 
     bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
@@ -26,8 +36,14 @@ class Callback : public PttCrawlerTaskCallback {
     }
 
     void doneParseDocument(const ArticleInfo &articleInfo, int current, int total) override {
-        std::cout << "doneParseDocument : " << current << " " << total << " " << articleInfo.title << std::endl;
-        std::cout.flush();
+        float done_block = (float(current) / float(total)) / 0.02f; //5% per block
+        std::string progressBar{"[--------------------------------------------------]"};
+        std::fill_n(progressBar.begin() + 1, done_block, '#');
+        std::cout << "\r" << progressBar << done_block * 2 << "% " << articleInfo.title;
+        if (total == current) {
+            std::cout << std::endl;
+        }
+        std::cout << std::flush;
     }
 
     void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,

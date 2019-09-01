@@ -23,7 +23,7 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
 
     ThreadPool index_tp{20};
 
-    for (int i = from; i > 0 && i > to; --i) {
+    for (int i = from; i > 0 && i >= to; --i) {
         //threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
         threadList.push_back(index_tp.enqueue(std::bind(&PttCrawler::GetArticleInIndex, crawler, i)));
     }
