@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
             std::cout << "(b) IP with multiple ID threshold : " << ipWithNameThreshold << std::endl;
             std::cout << "(c) Drop document if age more then : " << article_ignore_age_threshold << std::endl;
             std::cout << "(o) Output file : " << output_file << std::endl;
-            std::cout << "(g) Generate document " << std::endl;
+            std::cout << "(g) Generate report and statistics " << std::endl;
             std::cout << "(e) Exit" << std::endl;
             std::cout << "Command : ";
             std::cin >> cmd;
