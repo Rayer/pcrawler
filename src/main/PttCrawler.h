@@ -18,11 +18,12 @@
 class PttCrawler {
     std::string broadName;
     static std::string GetRawHtml(const std::string &url);
+
+    int threadpool_size = 10;
 public:
     explicit PttCrawler(const std::string &broadName);
     int GetMaxIndex();
     IndexInfo GetArticleInIndex(int index);
-
     ArticleInfo ParseArticle(ArticleInfo &articleInfo);
 
     virtual ~PttCrawler();

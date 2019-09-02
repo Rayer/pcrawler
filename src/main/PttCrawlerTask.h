@@ -27,7 +27,10 @@ class PttCrawlerTask {
     PttCrawlerTaskCallback *callback;
     PttCrawler *crawler;
     std::list<IndexInfo> indexInfoList;
+    unsigned long threadpool_size = 15;
 public:
+    void setThreadpoolSize(unsigned long threadpoolSize);
+
     explicit PttCrawlerTask(const std::string &boardName, PttCrawlerTaskCallback *callback = nullptr);
 
     void startCrawl_recent(int pages);

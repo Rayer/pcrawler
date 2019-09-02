@@ -21,7 +21,7 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
     int from = max_index;
     int to = max_index - pages;
 
-    ThreadPool index_tp{20};
+    ThreadPool index_tp{threadpool_size};
 
     for (int i = from; i > 0 && i >= to; --i) {
         //threadList.push_back(std::async(&PttCrawler::GetArticleInIndex, crawler, i));
@@ -38,7 +38,7 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
                       articleCount += info.articles.size();
     });
 
-    ThreadPool article_tp{20};
+    ThreadPool article_tp{threadpool_size};
     std::list<std::future<ArticleInfo>> futureList;
 
     std::for_each(indexInfoList.begin(), indexInfoList.end(),
@@ -104,4 +104,8 @@ void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThr
     ipAnalyzer->printReport(os, result);
 
     delete ipAnalyzer;
+}
+
+void PttCrawlerTask::setThreadpoolSize(unsigned long threadpoolSize) {
+    threadpool_size = threadpoolSize;
 }
