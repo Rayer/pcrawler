@@ -175,7 +175,7 @@ int main(int argc, char *argv[]) {
                 }
                 case str2int("b"): {
                     std::cout << "New value [" << ipWithNameThreshold << "] : ";
-                    std::cin >> ipWithNameThreshold;
+                    std::cin >> input;
                     int input;
                     if (std::cin.fail()) {
                         std::cin.clear();
