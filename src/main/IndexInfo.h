@@ -5,6 +5,7 @@
 #ifndef ANALYZER_INDEXINFO_H
 #define ANALYZER_INDEXINFO_H
 
+#include <boost/serialization/access.hpp>
 #include "ArticleInfo.h"
 
 struct IndexInfo {
@@ -12,6 +13,8 @@ struct IndexInfo {
     std::list<ArticleInfo> articles;
 
     friend std::ostream &operator<<(std::ostream &os, const IndexInfo &info);
+
+    friend class boost::serialization::access;
 };
 
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info);

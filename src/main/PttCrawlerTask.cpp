@@ -65,6 +65,10 @@ void PttCrawlerTask::startCrawl_recent(int pages) {
                       }
                       currentArticle++;
                   });
+
+    if (callback != nullptr) {
+        callback->doneParseAllDocument(indexInfoList);
+    }
 }
 
 void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {

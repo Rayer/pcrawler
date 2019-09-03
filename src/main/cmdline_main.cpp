@@ -9,6 +9,7 @@
 #include <iomanip>
 #include "Utilities.h"
 #include <boost/format.hpp>
+#include <Archiver.h>
 
 namespace bpo = boost::program_options;
 
@@ -20,6 +21,7 @@ private:
     bool verbose;
     int parsed_index;
     int parsed_document;
+    std::list<IndexInfo> parsed_indexinfo;
 
 public:
     int getParsedIndex() const {
@@ -34,7 +36,10 @@ public:
         article_ignore_age_threshold = articleIgnoreAgeThreshold;
     }
 
-public:
+    std::list<IndexInfo> getParsedIndexinfo() const {
+        return parsed_indexinfo;
+    }
+
     explicit Callback(int ignore_older_hour_article, bool verbose) {
         article_ignore_age_threshold = ignore_older_hour_article;
         this->verbose = verbose;
@@ -93,6 +98,10 @@ public:
         std::cout << output << std::endl;
         std::cout.flush();
 
+    }
+
+    void doneParseAllDocument(const std::list<IndexInfo> &info) override {
+        this->parsed_indexinfo = info;
     }
 };
 
@@ -156,6 +165,7 @@ int main(int argc, char *argv[]) {
             std::cout << "(b) IP with multiple ID threshold : " << ipWithNameThreshold << std::endl;
             std::cout << "(c) Drop document if age more then : " << article_ignore_age_threshold << std::endl;
             std::cout << "(o) Output file : " << output_file << std::endl;
+            std::cout << "(s) Save snapshot" << std::endl;
             std::cout << "(g) Generate report and statistics " << std::endl;
             std::cout << "(e) Exit" << std::endl;
             std::cout << "Command : ";
@@ -218,6 +228,10 @@ int main(int argc, char *argv[]) {
                         }
                         break;
                     }
+                }
+                case str2int("s"): {
+                    ArchiveService archiverService;
+                    archiverService.ArchiveFile("snapshot.txt", callback->getParsedIndexinfo());
                 }
                 case str2int("e"):
                     break;

@@ -10,6 +10,7 @@
 #include <map>
 #include <list>
 #include <set>
+#include <boost/serialization/access.hpp>
 
 struct ArticleInfo {
     int index;
@@ -36,9 +37,11 @@ struct ArticleInfo {
     std::map<std::string, std::set<int>> ipUserInfoMap;
 
     friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
+
+    friend class boost::serialization::access;
+
 };
 
 std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
-
 
 #endif //ANALYZER_ARTICLEINFO_H
