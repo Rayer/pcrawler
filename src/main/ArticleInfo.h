@@ -35,11 +35,6 @@ struct ArticleInfo {
 
     //userid / ip
     std::map<std::string, std::set<int>> ipUserInfoMap;
-
-    friend std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);
-
-    friend class boost::serialization::access;
-
 };
 
 std::ostream &operator<<(std::ostream &os, const ArticleInfo &info);

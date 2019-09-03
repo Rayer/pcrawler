@@ -11,10 +11,6 @@
 struct IndexInfo {
     int index;
     std::list<ArticleInfo> articles;
-
-    friend std::ostream &operator<<(std::ostream &os, const IndexInfo &info);
-
-    friend class boost::serialization::access;
 };
 
 std::ostream &operator<<(std::ostream &os, const IndexInfo &info);

@@ -24,11 +24,11 @@ private:
     std::list<IndexInfo> parsed_indexinfo;
 
 public:
-    int getParsedIndex() const {
+    [[nodiscard]] int getParsedIndex() const {
         return parsed_index;
     }
 
-    int getParsedDocument() const {
+    [[nodiscard]] int getParsedDocument() const {
         return parsed_document;
     }
 
@@ -36,7 +36,7 @@ public:
         article_ignore_age_threshold = articleIgnoreAgeThreshold;
     }
 
-    std::list<IndexInfo> getParsedIndexinfo() const {
+    [[nodiscard]] std::list<IndexInfo> getParsedIndexinfo() const {
         return parsed_indexinfo;
     }
 
