@@ -19,8 +19,8 @@ private:
 
 private:
     bool verbose;
-    int parsed_index;
-    int parsed_document;
+    int parsed_index{};
+    int parsed_document{};
     std::list<IndexInfo> parsed_indexinfo;
 
 public:
@@ -111,8 +111,9 @@ int main(int argc, char *argv[]) {
     desc.add_options()
             ("output,o", bpo::value<std::string>()->default_value(""), "Output File.")
             ("force_console", "Force output to console")
-            ("board,b", bpo::value<std::string>()->required(), "Board name")
-            ("pages,p", bpo::value<int>()->required(), "Parse page n from most recent")
+            ("board,b", bpo::value<std::string>(), "Board name")
+            ("pages,p", bpo::value<int>(), "Parse page n from most recent")
+            ("load,l", bpo::value<std::string>(), "Load snapshot file")
             ("ip_count_threshold", bpo::value<int>()->default_value(6), "User with different IP threshold.")
             ("same_ip_name_threshold", bpo::value<int>()->default_value(4), "Same IP with user threshold.")
             ("ignore_old_post_hour", bpo::value<int>()->default_value(0),
@@ -134,6 +135,10 @@ int main(int argc, char *argv[]) {
         std::cout << desc << std::endl;
     }
 
+    if (opts.count("load") == 0 && (opts.count("board") == 0 || opts.count("pages") == 0)) {
+        throw bpo::invalid_option_value("[board] and [pages] are required if [load] is not specified!");
+    }
+
     if (opts.count("help")) {
         std::cout << desc << std::endl;
         return 0;
@@ -141,19 +146,26 @@ int main(int argc, char *argv[]) {
 
     //std::string boardName = opts["board"].as<std::string>();
     std::string output_file = opts["output"].as<std::string>();
-    int pages = opts["pages"].as<int>();
-    int ipCountThreshold = opts["ip_count_threshold"].as<int>();
-    int ipWithNameThreshold = opts["same_ip_name_threshold"].as<int>();
     int article_ignore_age_threshold = opts["ignore_old_post_hour"].as<int>();
-    int thread_count = opts["thread_count"].as<int>();
 
     auto *callback = new Callback(article_ignore_age_threshold, opts.count("verbose"));
+    PttCrawlerTask task(callback);
 
-    PttCrawlerTask task(opts["board"].as<std::string>(), callback);
-    task.setThreadpoolSize(thread_count);
-    std::cout << "Start download and parsing..." << std::endl;
-    task.startCrawl_recent(pages);
-    std::cout << "Complete download and parsing." << std::endl;
+    if (opts.count("load")) {
+        task.load_snapshot(opts["load"].as<std::string>());
+    } else {
+        int pages = opts["pages"].as<int>();
+        std::string board = opts["board"].as<std::string>();
+        int thread_count = opts["thread_count"].as<int>();
+        task.setThreadpoolSize(thread_count);
+        std::cout << "Start download and parsing..." << std::endl;
+        task.startCrawl_recent(board, pages);
+        std::cout << "Complete download and parsing." << std::endl;
+    }
+
+    int ipCountThreshold = opts["ip_count_threshold"].as<int>();
+    int ipWithNameThreshold = opts["same_ip_name_threshold"].as<int>();
+
 
     if (opts.count("interactive")) {
         //Interactive mode
@@ -230,8 +242,12 @@ int main(int argc, char *argv[]) {
                     }
                 }
                 case str2int("s"): {
+                    std::string filename;
+                    std::cout << "Destination file : ";
+                    std::cin >> filename;
                     ArchiveService archiverService;
-                    archiverService.ArchiveFile("snapshot.txt", callback->getParsedIndexinfo());
+                    archiverService.ArchiveFile(filename, callback->getParsedIndexinfo());
+                    break;
                 }
                 case str2int("e"):
                     break;
@@ -250,6 +266,11 @@ int main(int argc, char *argv[]) {
             }
         } else {
             task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
+        }
+
+        if (opts.count("save") > 0) {
+            ArchiveService archiverService;
+            archiverService.ArchiveFile(opts["save"].as<std::string>(), callback->getParsedIndexinfo());
         }
     }
 

@@ -7,15 +7,17 @@
 #include "PttCrawler.h"
 #include "IpAnalyzer.h"
 #include "ThreadPool.h"
+#include "Archiver.h"
 
-PttCrawlerTask::PttCrawlerTask(const std::string &boardName, PttCrawlerTaskCallback *callback) : crawler(
-        new PttCrawler(boardName)), callback(callback) {}
+PttCrawlerTask::PttCrawlerTask(PttCrawlerTaskCallback *callback) : crawler(nullptr), callback(callback) {}
 
 PttCrawlerTask::~PttCrawlerTask() {
     delete crawler;
 }
 
-void PttCrawlerTask::startCrawl_recent(int pages) {
+void PttCrawlerTask::startCrawl_recent(const std::string &in_boardName, int pages) {
+    this->boardName = in_boardName;
+    crawler = new PttCrawler(boardName);
     int max_index = crawler->GetMaxIndex();
     std::list<std::future<IndexInfo>> threadList;
     int from = max_index;
@@ -112,4 +114,14 @@ void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThr
 
 void PttCrawlerTask::setThreadpoolSize(unsigned long threadpoolSize) {
     threadpool_size = threadpoolSize;
+}
+
+void PttCrawlerTask::load_snapshot(const std::string &filename) {
+    ArchiveService service;
+    ArchivedInfo archivedInfo = service.RestoreFromFile(filename);
+    this->indexInfoList = archivedInfo.content;
+
+    if (callback != nullptr) {
+        callback->doneParseAllDocument(indexInfoList);
+    }
 }

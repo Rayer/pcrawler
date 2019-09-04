@@ -30,12 +30,15 @@ class PttCrawlerTask {
     PttCrawler *crawler;
     std::list<IndexInfo> indexInfoList;
     unsigned long threadpool_size = 15;
+    std::string boardName;
 public:
     void setThreadpoolSize(unsigned long threadpoolSize);
 
-    explicit PttCrawlerTask(const std::string &boardName, PttCrawlerTaskCallback *callback = nullptr);
+    explicit PttCrawlerTask(PttCrawlerTaskCallback *callback = nullptr);
 
-    void startCrawl_recent(int pages);
+    void startCrawl_recent(const std::string &in_boardName, int pages);
+
+    void load_snapshot(const std::string &filename);
 
     void doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold);
 

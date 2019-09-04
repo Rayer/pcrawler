@@ -134,8 +134,8 @@ TEST(CrawlerTask_Test, CallbackTest) {
     };
 
     auto *cb = new Callback();
-    auto *task = new PttCrawlerTask("Gossiping", cb);
-    task->startCrawl_recent(1);
+    auto *task = new PttCrawlerTask(cb);
+    task->startCrawl_recent("gossiping", 1);
     task->generateReport(7, 2, std::cout);
     delete cb;
     delete task;
