@@ -31,6 +31,10 @@ class PttCrawlerTask {
     std::list<IndexInfo> indexInfoList;
     unsigned long threadpool_size = 15;
     std::string boardName;
+
+private:
+    IpAnalyzer::Result doAnalyze_impl(int nameIpCountThreshold, int ipNameCountThreshold, IpAnalyzer *ipAnalyzer) const;
+
 public:
     void setThreadpoolSize(unsigned long threadpoolSize);
 
@@ -45,6 +49,8 @@ public:
     void generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os);
 
     virtual ~PttCrawlerTask();
+
+
 };
 
 

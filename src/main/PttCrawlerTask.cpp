@@ -74,22 +74,13 @@ void PttCrawlerTask::startCrawl_recent(const std::string &in_boardName, int page
 }
 
 void PttCrawlerTask::doAnalyze(int nameIpCountThreshold, int ipNameCountThreshold) {
-    IpAnalyzer* analyzer = new IpAnalyzer();
+    IpAnalyzer* ipAnalyzer = new IpAnalyzer();
+    doAnalyze_impl(nameIpCountThreshold, ipNameCountThreshold, ipAnalyzer);
 
-    IpAnalyzer::ID_IPS_MAP idIpsMap;
-    IpAnalyzer::IP_IDS_MAP ipIdsMap;
-    IpAnalyzer::Result result = analyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
-    if(callback != nullptr) {
-        callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
-    }
-
-    delete analyzer;
+    delete ipAnalyzer;
 }
 
-
-void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os) {
-    auto *ipAnalyzer = new IpAnalyzer();
-
+IpAnalyzer::Result PttCrawlerTask::doAnalyze_impl(int nameIpCountThreshold, int ipNameCountThreshold, IpAnalyzer *ipAnalyzer) const {
     std::for_each(indexInfoList.begin(), indexInfoList.end(), [&ipAnalyzer, this](const IndexInfo &i_info) -> void {
         //ipAnalyzer->addParsedIndex(i_info);
         std::for_each(i_info.articles.begin(), i_info.articles.end(),
@@ -102,13 +93,18 @@ void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThr
     });
 
     IpAnalyzer::Result result = ipAnalyzer->analyze(nameIpCountThreshold, ipNameCountThreshold);
-
-    if (callback != nullptr) {
+    if(callback != nullptr) {
         callback->analyzeFinished(result.idIpsMap, result.ipIdsMap, result.highlightUserMap);
     }
+    return result;
+}
 
+
+void PttCrawlerTask::generateReport(int nameIpCountThreshold, int ipNameCountThreshold, std::ostream &os) {
+    auto *ipAnalyzer = new IpAnalyzer();
+
+    IpAnalyzer::Result result = doAnalyze_impl(nameIpCountThreshold, ipNameCountThreshold, ipAnalyzer);
     ipAnalyzer->printReport(os, result);
-
     delete ipAnalyzer;
 }
 

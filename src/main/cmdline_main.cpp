@@ -94,9 +94,9 @@ public:
     void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,
                          const IpAnalyzer::HIGHLIGHT_USER_MAP &highlightUserMap) override {
         std::string output = boost::str(boost::format(
-                "Analyze completed!\nID with multiple ID : %1%\nIP shared by multiple ID : %2%\nHighlighted user : %3%") %
+                "ID with multiple ID : %1%\nIP shared by multiple ID : %2%\nHighlighted user : %3%") %
                                         idAddrMap.size() % ipSharedMap.size() % highlightUserMap.size());
-        std::cout << output << std::endl;
+        std::cout << "--------------------Analyze Report--------------------" << std::endl << output << std::endl << "------------------------------------------------------" << std::endl;
         std::cout.flush();
 
     }
@@ -118,7 +118,8 @@ int main(int argc, char *argv[]) {
             ("force_console", "Force output to console")
             ("board,b", bpo::value<std::string>(), "Board name")
             ("pages,p", bpo::value<int>(), "Parse page n from most recent")
-            ("load,l", bpo::value<std::string>(), "Load snapshot file")
+            ("load,l", bpo::value<std::string>(), "Load from snapshot file")
+            ("save,s", bpo::value<std::string>(), "Save snapshot")
             ("ip_count_threshold", bpo::value<int>()->default_value(6), "User with different IP threshold.")
             ("same_ip_name_threshold", bpo::value<int>()->default_value(4), "Same IP with user threshold.")
             ("ignore_old_post_hour", bpo::value<int>()->default_value(0),
@@ -140,15 +141,16 @@ int main(int argc, char *argv[]) {
         std::cout << desc << std::endl;
     }
 
-    if (opts.count("load") == 0 && (opts.count("board") == 0 || opts.count("pages") == 0)) {
-        throw bpo::invalid_option_value("[board] and [pages] are required if [load] is not specified!");
-    }
+
 
     if (opts.count("help")) {
         std::cout << desc << std::endl;
         return 0;
     }
 
+    if (opts.count("load") == 0 && (opts.count("board") == 0 || opts.count("pages") == 0)) {
+        throw bpo::invalid_option_value("[board] and [pages] are required if [load] is not specified!");
+    }
     //std::string boardName = opts["board"].as<std::string>();
     std::string output_file = opts["output"].as<std::string>();
     int article_ignore_age_threshold = opts["ignore_old_post_hour"].as<int>();
@@ -181,6 +183,7 @@ int main(int argc, char *argv[]) {
             std::cout << "(a) ID with multiple IP threshold : " << ipCountThreshold << std::endl;
             std::cout << "(b) IP with multiple ID threshold : " << ipWithNameThreshold << std::endl;
             std::cout << "(c) Drop document if age more then : " << article_ignore_age_threshold << std::endl;
+            std::cout << "(d) Do brief analyze and print result" << std::endl;
             std::cout << "(o) Output file : " << output_file << std::endl;
             std::cout << "(s) Save snapshot" << std::endl;
             std::cout << "(g) Generate report and statistics " << std::endl;
@@ -221,6 +224,11 @@ int main(int argc, char *argv[]) {
                         article_ignore_age_threshold = input;
                         callback->setArticleIgnoreAgeThreshold(article_ignore_age_threshold);
                     }
+                    break;
+                }
+                case str2int("d"): {
+                    task.doAnalyze(ipCountThreshold, ipWithNameThreshold);
+
                     break;
                 }
                 case str2int("o"): {
