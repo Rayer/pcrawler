@@ -10,6 +10,7 @@
 #include "Utilities.h"
 #include <boost/format.hpp>
 #include <Archiver.h>
+#include <numeric>
 
 namespace bpo = boost::program_options;
 
@@ -54,7 +55,7 @@ public:
             std::cout << std::endl;
         }
         std::cout << std::flush;
-        parsed_index = from - to + 1;
+        //parsed_index = from - to + 1;
     }
 
     bool shouldIncludeInReport(const ArticleInfo &articleInfo) override {
@@ -87,7 +88,7 @@ public:
             }
             std::cout << std::flush;
         }
-        parsed_document = total;
+        //parsed_document = total;
     }
 
     void analyzeFinished(const IpAnalyzer::ID_IPS_MAP &idAddrMap, const IpAnalyzer::IP_IDS_MAP &ipSharedMap,
@@ -102,6 +103,10 @@ public:
 
     void doneParseAllDocument(const std::list<IndexInfo> &info) override {
         this->parsed_indexinfo = info;
+        parsed_index = info.size();
+        parsed_document = std::reduce(info.begin(), info.end(), 0, [](int count, const IndexInfo &info) -> int {
+            return count + info.articles.size();
+        });
     }
 };
 
