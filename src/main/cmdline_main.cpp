@@ -17,6 +17,7 @@ namespace bpo = boost::program_options;
 class Callback : public PttCrawlerTaskCallback {
 private:
     int article_ignore_age_threshold;
+    std::string board_name;
 
 private:
     bool verbose;
@@ -31,6 +32,10 @@ public:
 
     [[nodiscard]] int getParsedDocument() const {
         return parsed_document;
+    }
+
+    void setBoardName(const std::string &boardName) {
+        board_name = boardName;
     }
 
     void setArticleIgnoreAgeThreshold(int articleIgnoreAgeThreshold) {
@@ -50,7 +55,7 @@ public:
         std::string progressBar{"[--------------------------------------------------]"};
         std::fill_n(progressBar.begin() + 1, (int) done_block, '#');
         std::cout << "\r" << progressBar << done_block * 2 << "% Fetching index URL : "
-                  << "https://www.ptt.cc/bbs/Gossiping/index" << current << ".html";
+                  << "https://www.ptt.cc/bbs/" << board_name << "/index" << current << ".html";
         if (to == current) {
             std::cout << std::endl;
         }
@@ -164,6 +169,7 @@ int main(int argc, char *argv[]) {
         int pages = opts["pages"].as<int>();
         std::string board = opts["board"].as<std::string>();
         int thread_count = opts["thread_count"].as<int>();
+        callback->setBoardName(board);
         task.setThreadpoolSize(thread_count);
         std::cout << "Start download and parsing..." << std::endl;
         task.startCrawl_recent(board, pages);

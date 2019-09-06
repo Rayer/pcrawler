@@ -11,6 +11,7 @@
 
 struct ArchivedInfo {
     std::string filename;
+    std::string boardname;
     time_t timestamp;
     std::list<IndexInfo> content;
 };
@@ -50,6 +51,7 @@ void serialize(Archive &ar, ArticleInfo &article, const unsigned int version) {
 template<typename Archive>
 void serialize(Archive &ar, ArchivedInfo &archiveFile, const unsigned int version) {
     ar & archiveFile.filename;
+    ar & archiveFile.boardname;
     ar & archiveFile.timestamp;
     ar & archiveFile.content;
 }
@@ -57,7 +59,6 @@ void serialize(Archive &ar, ArchivedInfo &archiveFile, const unsigned int versio
 class ArchiveService {
 public:
     void ArchiveFile(const std::string &filename, const std::list<IndexInfo> &infoList);
-
     ArchivedInfo RestoreFromFile(const std::string &filename);
 };
 
