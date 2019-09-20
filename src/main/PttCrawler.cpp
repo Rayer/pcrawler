@@ -23,6 +23,7 @@ std::string PttCrawler::GetRawHtml(const std::string &url) {
     curl_slist *headers = nullptr;
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_URL,url.c_str());
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT_MS, 5000);
 
     std::string resultBody{};
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &resultBody);

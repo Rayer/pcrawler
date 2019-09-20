@@ -52,7 +52,7 @@ TEST(Crawler_Test, PinnedArticleTest) {
     delete crawler;
 }
 
-TEST(CrawlerTest, DocParse) {
+TEST(Crawler_Test, DocParse) {
     //std::string url = {"https://www.ptt.cc/bbs/Gossiping/M.1566137207.A.E21.html"};
     std::string url{"https://www.ptt.cc/bbs/Gossiping/M.1567144923.A.E94.html"};
     auto *crawler = new PttCrawler(target);

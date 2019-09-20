@@ -9,19 +9,9 @@
 #include <IpAnalyzer.h>
 #include <fstream>
 
-static const int fetch_pages = 10;
+//static const int fetch_pages = 10;
 static const char *target = "gossiping";
-static const int stress_fetch_pages = 50;
-
-TEST(ThreadTest, StressIndexWithoutThread) {
-    PttCrawler *crawler = new PttCrawler(target);
-    int max_index = crawler->GetMaxIndex();
-    for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
-        std::cout << crawler->GetArticleInIndex(i) << std::endl;
-    }
-    delete crawler;
-}
-
+static const int stress_fetch_pages = 20;
 
 TEST(ThreadTest, StressIndexWithFullThread) {
     PttCrawler *crawler = new PttCrawler(target);
@@ -38,23 +28,6 @@ TEST(ThreadTest, StressIndexWithFullThread) {
     delete crawler;
 }
 
-TEST(ThreadTest, StressDocParseWithoutThread) {
-    PttCrawler *crawler = new PttCrawler(target);
-    int max_index = crawler->GetMaxIndex();
-    std::list<IndexInfo> indexInfoList;
-    for(int i = max_index; i > 0 && i > max_index - stress_fetch_pages; --i) {
-        indexInfoList.push_back(crawler->GetArticleInIndex(i));
-    }
-
-    std::for_each(indexInfoList.begin(), indexInfoList.end(), [crawler](IndexInfo& iinfo)->void{
-        std::for_each(iinfo.articles.begin(), iinfo.articles.end(), [crawler](ArticleInfo& ainfo)->void{
-            crawler->ParseArticle(ainfo);
-        });
-        std::cout << iinfo << std::endl;
-    });
-
-    delete crawler;
-}
 
 TEST(ThreadTest, StressDocParseWithThread) {
     PttCrawler *crawler = new PttCrawler(target);

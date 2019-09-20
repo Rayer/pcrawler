@@ -25,3 +25,10 @@ target_link_libraries(AnalyzerLibs CONAN_PKG::libcurl boost_system boost_program
 target_link_libraries(Analyzer AnalyzerLibs)
 target_link_libraries(AnalyzerTest AnalyzerLibs CONAN_PKG::libcurl CONAN_PKG::gtest)
 
+enable_testing()
+add_test(Crawler bin/AnalyzerTest --gtest_filter=Crawler_Test.*)
+add_test(CrawlerTask bin/AnalyzerTest --gtest_filter=CrawlerTask_Test.*)
+add_test(Serialization bin/AnalyzerTest --gtest_filter=Serialization.*)
+add_test(Thread bin/AnalyzerTest --gtest_filter=ThreadTest.*)
+add_test(CmdLine bin/Analyzer -b Gossiping -p 5)
+

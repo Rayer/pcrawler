@@ -5,8 +5,6 @@
 #include <iostream>
 #include <fstream>
 #include "PttCrawlerTask.h"
-#include <cmath>
-#include <iomanip>
 #include "Utilities.h"
 #include <boost/format.hpp>
 #include <Archiver.h>
@@ -133,7 +131,8 @@ int main(int argc, char *argv[]) {
             ("interactive,i", "Interactive mode while generating report after documents are parsed.")
             ("help,h", "Help")
             ("thread_count,t", bpo::value<int>()->default_value(15),
-             "Thread count. If there are some curl error 6, consider lower this value");
+             "Thread count. If there are some curl error 6, consider lower this value")
+            ("nlp_mode", "Do NLP analysis in report");
 
     bpo::variables_map opts;
     bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
@@ -257,8 +256,8 @@ int main(int argc, char *argv[]) {
                         if (opts.count("force_console")) {
                             task.generateReport(ipCountThreshold, ipWithNameThreshold, std::cout);
                         }
-                        break;
                     }
+                    break;
                 }
                 case str2int("s"): {
                     std::string filename;
