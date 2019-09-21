@@ -15,7 +15,7 @@ set(LIBS src/main/PttCrawler.cpp src/main/PttCrawler.h src/main/Utilities.cpp sr
 
 FIND_PACKAGE(Boost REQUIRED serialization filesystem system thread program_options)
 
-include_directories(/usr/local/include/gq ${Boost_INCLUDE_DIR} )
+include_directories(/usr/local/include/gq ${BOOST_INCLUDE_DIRS})
 link_directories(/usr/local/lib lib)
 
 add_library(AnalyzerLibs ${LIBS})
